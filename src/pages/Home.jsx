@@ -24,6 +24,8 @@ function Home() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showUploadPhoto, setShowUploadPhoto] = useState(false);
   const [editName, setEditName] = useState(session?.user?.name || '');
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   const handleLogout = async () => {
     await authClient.signOut();
@@ -95,22 +97,19 @@ function Home() {
           {/* Notification Dropdown */}
           {showNotif && (
             <>
-              <div className="fixed inset-0 z-40" onClick={() => setShowNotif(false)}></div>
-              <div className="absolute top-14 right-12 lg:right-20 w-72 glass-card rounded-2xl p-4 border border-white/10 shadow-2xl z-50 space-y-3">
-                <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
-                  <span className="material-symbols-outlined text-secondary text-base">notifications</span> Notifikasi
+              <div className="fixed inset-0 z-[90]" onClick={() => setShowNotif(false)}></div>
+              <div className="fixed top-14 right-12 lg:right-auto lg:left-[calc(18rem+2rem)] w-64 bg-[#151a30] rounded-xl p-3 border border-white/10 shadow-2xl z-[91] space-y-2">
+                <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5 pb-1 border-b border-white/10">
+                  <span className="material-symbols-outlined text-secondary text-sm">notifications</span> Notifikasi
                 </h4>
-                <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                  <p className="text-xs font-bold text-white">📅 Tahun Ajaran Aktif</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{schoolInfo.academicYear} - Semester {schoolInfo.semester}</p>
+                <div className="bg-white/5 rounded-lg p-2 border border-white/5">
+                  <p className="text-[11px] font-bold text-white">📅 {schoolInfo.academicYear} - {schoolInfo.semester}</p>
                 </div>
-                <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                  <p className="text-xs font-bold text-white">👥 Total Murid</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{totalStudents} siswa terdaftar ({totalL} L, {totalP} P)</p>
+                <div className="bg-white/5 rounded-lg p-2 border border-white/5">
+                  <p className="text-[11px] font-bold text-white">👥 {totalStudents} siswa ({totalL}L, {totalP}P)</p>
                 </div>
-                <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                  <p className="text-xs font-bold text-white">✅ Raport TK v1.0</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Aplikasi sudah versi terbaru.</p>
+                <div className="bg-white/5 rounded-lg p-2 border border-white/5">
+                  <p className="text-[11px] font-bold text-white">✅ Raport TK v1.0</p>
                 </div>
               </div>
             </>
@@ -119,29 +118,29 @@ function Home() {
           {/* Profile Dropdown */}
           {showProfile && (
             <>
-              <div className="fixed inset-0 z-40" onClick={() => setShowProfile(false)}></div>
-              <div className="absolute top-14 right-4 lg:right-10 w-64 glass-card rounded-2xl p-4 border border-white/10 shadow-2xl z-50 space-y-3">
-                <div className="flex items-center gap-3 pb-3 border-b border-white/10">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white font-black text-sm shadow-lg">
+              <div className="fixed inset-0 z-[90]" onClick={() => setShowProfile(false)}></div>
+              <div className="fixed top-14 right-4 w-56 bg-[#151a30] rounded-xl p-3 border border-white/10 shadow-2xl z-[91] space-y-1">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-white/10">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white font-black text-xs">
                     {session?.user?.name?.charAt(0).toUpperCase() || 'G'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-white truncate">{session?.user?.name || 'Guru'}</p>
-                    <p className="text-[10px] text-slate-400 truncate">{session?.user?.email || ''}</p>
+                    <p className="text-xs font-bold text-white truncate">{session?.user?.name || 'Guru'}</p>
+                    <p className="text-[9px] text-slate-400 truncate">{session?.user?.email || ''}</p>
                   </div>
                 </div>
-                <button onClick={() => { setShowProfile(false); setShowEditProfile(true); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-left">
-                  <span className="material-symbols-outlined text-base text-slate-300">edit</span>
-                  <span className="text-xs font-bold text-slate-200">Edit Profil</span>
+                <button onClick={() => { setShowProfile(false); setShowEditProfile(true); }} className="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
+                  <span className="material-symbols-outlined text-sm text-slate-300">edit</span>
+                  <span className="text-[11px] font-bold text-slate-200">Edit Profil</span>
                 </button>
-                <button onClick={() => { setShowProfile(false); setShowUploadPhoto(true); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-left">
-                  <span className="material-symbols-outlined text-base text-slate-300">photo_camera</span>
-                  <span className="text-xs font-bold text-slate-200">Upload Foto Profil</span>
+                <button onClick={() => { setShowProfile(false); setShowUploadPhoto(true); }} className="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
+                  <span className="material-symbols-outlined text-sm text-slate-300">photo_camera</span>
+                  <span className="text-[11px] font-bold text-slate-200">Upload Foto</span>
                 </button>
-                <div className="border-t border-white/10 pt-2">
-                  <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent/10 transition-colors text-left">
-                    <span className="material-symbols-outlined text-base text-accent">logout</span>
-                    <span className="text-xs font-bold text-accent">Keluar</span>
+                <div className="border-t border-white/10 pt-1">
+                  <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-accent/10 transition-colors text-left">
+                    <span className="material-symbols-outlined text-sm text-accent">logout</span>
+                    <span className="text-[11px] font-bold text-accent">Keluar</span>
                   </button>
                 </div>
               </div>
@@ -273,9 +272,9 @@ function Home() {
 
       {/* Edit Profile Modal */}
       {showEditProfile && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowEditProfile(false)}>
-          <div className="w-full max-w-sm bg-[#1a1f3d] border border-white/10 rounded-t-2xl sm:rounded-2xl p-5 space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-base font-black text-white">Edit Profil</h3>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowEditProfile(false)}>
+          <div className="w-full max-w-xs bg-[#151a30] border border-white/10 rounded-xl p-4 space-y-3 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-black text-white">Edit Profil</h3>
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
               <input type="text" value={editName} onChange={e => setEditName(e.target.value)}
@@ -298,14 +297,43 @@ function Home() {
 
       {/* Upload Photo Modal */}
       {showUploadPhoto && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowUploadPhoto(false)}>
-          <div className="w-full max-w-sm bg-[#1a1f3d] border border-white/10 rounded-t-2xl sm:rounded-2xl p-5 space-y-4 shadow-2xl text-center" onClick={e => e.stopPropagation()}>
-            <h3 className="text-base font-black text-white">Upload Foto Profil</h3>
-            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white text-3xl font-black shadow-lg">
-              {session?.user?.name?.charAt(0).toUpperCase() || 'G'}
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowUploadPhoto(false)}>
+          <div className="w-full max-w-xs bg-[#151a30] border border-white/10 rounded-xl p-4 space-y-3 shadow-2xl text-center" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-black text-white">Upload Foto Profil</h3>
+            <div className="relative w-16 h-16 mx-auto">
+              {photoPreview ? (
+                <img src={photoPreview} alt="Preview" className="w-16 h-16 rounded-full object-cover border-2 border-primary" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white text-2xl font-black">
+                  {session?.user?.name?.charAt(0).toUpperCase() || 'G'}
+                </div>
+              )}
             </div>
-            <p className="text-xs text-slate-400">Fitur upload foto profil akan segera tersedia.</p>
-            <button onClick={() => setShowUploadPhoto(false)} className="w-full py-3 bg-white/5 text-slate-300 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">Tutup</button>
+            <label className="block cursor-pointer">
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) { setProfilePhoto(file); setPhotoPreview(URL.createObjectURL(file)); }
+              }} />
+              <div className="py-2 px-4 bg-white/10 hover:bg-white/15 text-white rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">upload</span> Pilih Foto
+              </div>
+            </label>
+            {photoPreview && <p className="text-[10px] text-emerald-400">✓ {profilePhoto?.name}</p>}
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => { setShowUploadPhoto(false); setPhotoPreview(null); setProfilePhoto(null); }} className="flex-1 py-2.5 bg-white/5 text-slate-300 rounded-lg text-xs font-bold">Batal</button>
+              <button disabled={!profilePhoto} onClick={async () => {
+                if (!profilePhoto) return;
+                try {
+                  const formData = new FormData();
+                  formData.append('image', profilePhoto);
+                  await authClient.updateUser({ image: photoPreview });
+                  setShowUploadPhoto(false); setPhotoPreview(null); setProfilePhoto(null);
+                  window.location.reload();
+                } catch { alert('Gagal upload foto.'); }
+              }} className="flex-[2] py-2.5 bg-gradient-to-r from-secondary to-primary text-white rounded-lg text-xs font-bold active:scale-95 transition-all disabled:opacity-40">
+                Simpan Foto
+              </button>
+            </div>
           </div>
         </div>
       )}
