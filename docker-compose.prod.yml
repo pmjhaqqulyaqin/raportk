@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: raportk-app
+    env_file: .env.production
+    ports:
+      - "3100:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - uploads:/app/uploads
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: raportk-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-raportk_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-raportk_secret}
+      POSTGRES_DB: ${DB_NAME:-raportk}
+    env_file: .env.production
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-raportk_user}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  uploads:

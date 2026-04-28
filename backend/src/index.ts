@@ -12,7 +12,11 @@ import templatesRouter from './routes/templates';
 import backupRouter from './routes/backup';
 import aiRouter from './routes/ai';
 
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+// Load .env — Docker production: /app/.env.production, Dev: ../../.env
+const isProduction = process.env.NODE_ENV === 'production';
+if (!isProduction) {
+  dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+}
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -53,6 +57,17 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
+// --- Production: Serve frontend static files ---
+if (isProduction) {
+  const frontendPath = path.resolve(__dirname, '../public');
+  app.use(express.static(frontendPath));
+
+  // SPA fallback: all non-API routes serve index.html
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(frontendPath, 'index.html'));
+  });
+}
+
 app.listen(port, () => {
-  console.log(`Backend server listening on port ${port}`);
+  console.log(`Backend server listening on port ${port} (${isProduction ? 'production' : 'development'})`);
 });

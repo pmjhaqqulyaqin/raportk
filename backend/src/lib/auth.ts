@@ -5,7 +5,10 @@ import * as schema from "../db/schema";
 import * as dotenv from 'dotenv';
 import path from 'path';
 
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+// Load .env only in development (Docker injects env vars in production)
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+}
 
 export const auth = betterAuth({
     database: drizzleAdapter(db, {
@@ -22,3 +25,4 @@ export const auth = betterAuth({
     baseURL: process.env.BETTER_AUTH_URL,
     trustedOrigins: [process.env.FRONTEND_URL || "http://localhost:5173"],
 });
+
