@@ -10,55 +10,52 @@ function BottomNav() {
   const isSetup = path === '/setup';
   const isIsi = path.startsWith('/editor');
   const isTemplate = path === '/templates';
-  const isMaster = path === '/master';
   const isCetak = path.startsWith('/print');
 
-  const getLinkClass = (isActive, isCenter = false) => {
-    return `flex flex-col items-center justify-center transition-all duration-300 ${
-      isCenter ? 'relative -top-5' : 'py-2 px-3'
-    } ${
-      isActive 
-        ? (isCenter ? 'text-white scale-110' : 'text-white scale-110 -translate-y-2')
-        : 'text-slate-400 hover:text-slate-200 active:scale-95'
-    }`;
-  };
+  const tabs = [
+    { to: '/', label: 'Dashboard', icon: 'space_dashboard', active: isHome },
+    { to: '/setup', label: 'Pengaturan', icon: 'settings', active: isSetup },
+    { to: '/editor', label: 'Input Nilai', icon: 'edit_document', active: isIsi, isCenter: true },
+    { to: '/templates', label: 'Template', icon: 'description', active: isTemplate },
+    { to: '/print', label: 'Cetak', icon: 'print', active: isCetak },
+  ];
 
   return (
-    <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-sm z-[60] no-print pb-safe">
-      <nav className="flex justify-between items-center px-4 py-2 glass-panel rounded-[2rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] border border-white/10 relative">
-        <Link className={getLinkClass(isHome)} to="/">
-          <div className={isHome ? "w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/40 text-white" : ""}>
-            <span className="material-symbols-outlined text-[22px]">space_dashboard</span>
-          </div>
-          {!isHome && <span className="text-[10px] font-bold mt-1">Dashboard</span>}
-        </Link>
-        <Link className={getLinkClass(isSetup)} to="/setup">
-          <div className={isSetup ? "w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/40 text-white" : ""}>
-            <span className="material-symbols-outlined text-[22px]">settings</span>
-          </div>
-          {!isSetup && <span className="text-[10px] font-bold mt-1">Pengaturan</span>}
-        </Link>
-        
-        {/* Center Main Tab: Input Nilai */}
-        <Link className={getLinkClass(isIsi, true)} to="/editor">
-          <div className="w-16 h-16 bg-gradient-to-tr from-secondary to-primary rounded-full flex items-center justify-center shadow-[0_10px_25px_rgba(79,70,229,0.5)] text-white border-4 border-[#1E40AF]">
-            <span className="material-symbols-outlined text-[28px]">edit_document</span>
-          </div>
-          <span className="text-[10px] font-bold mt-1 text-white absolute -bottom-4 bg-black/40 px-2 py-0.5 rounded-full backdrop-blur-md whitespace-nowrap">Input Nilai</span>
-        </Link>
-
-        <Link className={getLinkClass(isTemplate)} to="/templates">
-          <div className={isTemplate ? "w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/40 text-white" : ""}>
-            <span className="material-symbols-outlined text-[22px]">description</span>
-          </div>
-          {!isTemplate && <span className="text-[10px] font-bold mt-1">Template</span>}
-        </Link>
-        <Link className={getLinkClass(isCetak)} to="/print">
-          <div className={isCetak ? "w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/40 text-white" : ""}>
-            <span className="material-symbols-outlined text-[22px]">print</span>
-          </div>
-          {!isCetak && <span className="text-[10px] font-bold mt-1">Cetak</span>}
-        </Link>
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[60] no-print">
+      <nav className="flex items-end justify-around glass-panel border-t border-white/10 px-1 pt-1 pb-safe"
+           style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 6px), 6px)' }}>
+        {tabs.map((tab) => {
+          if (tab.isCenter) {
+            return (
+              <Link key={tab.to} to={tab.to}
+                className="flex flex-col items-center justify-center relative -top-3 flex-1 min-w-0">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg text-white border-2 transition-all duration-200 ${
+                  tab.active
+                    ? 'bg-gradient-to-tr from-secondary to-primary border-white/20 scale-110 shadow-primary/40'
+                    : 'bg-gradient-to-tr from-secondary/80 to-primary/80 border-[#1E40AF]'
+                }`}>
+                  <span className="material-symbols-outlined text-xl">{tab.icon}</span>
+                </div>
+                <span className={`text-[9px] font-bold mt-0.5 ${tab.active ? 'text-white' : 'text-slate-400'}`}>{tab.label}</span>
+              </Link>
+            );
+          }
+          return (
+            <Link key={tab.to} to={tab.to}
+              className={`flex flex-col items-center justify-center py-1.5 flex-1 min-w-0 transition-all duration-200 ${
+                tab.active ? 'text-white' : 'text-slate-400'
+              }`}>
+              <div className={`flex items-center justify-center transition-all duration-200 ${
+                tab.active ? 'w-9 h-9 bg-primary/30 rounded-full' : ''
+              }`}>
+                <span className="material-symbols-outlined text-lg">{tab.icon}</span>
+              </div>
+              <span className={`text-[9px] font-bold mt-0.5 truncate max-w-full px-0.5 ${
+                tab.active ? 'text-white' : ''
+              }`}>{tab.label}</span>
+            </Link>
+          );
+        })}
       </nav>
     </div>
   );
