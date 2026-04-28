@@ -67,10 +67,6 @@ function PrintPreview() {
               <span className="material-symbols-outlined text-[22px]" data-icon="settings">settings</span>
               <span className="text-[15px] font-medium">Pengaturan</span>
             </Link>
-            <Link className="flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 transition-all" to="/master">
-              <span className="material-symbols-outlined text-[22px]" data-icon="database">database</span>
-              <span className="text-[15px] font-medium">Data Master</span>
-            </Link>
             <Link className="flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 transition-all" to="/editor">
               <span className="material-symbols-outlined text-[22px]" data-icon="edit_note">edit_note</span>
               <span className="text-[15px] font-medium">Input Nilai</span>
@@ -140,10 +136,6 @@ function PrintPreview() {
           <Link className="flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 transition-all" to="/setup">
             <span className="material-symbols-outlined text-[22px]" data-icon="settings">settings</span>
             <span className="text-[15px] font-medium">Pengaturan</span>
-          </Link>
-          <Link className="flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 transition-all" to="/master">
-            <span className="material-symbols-outlined text-[22px]" data-icon="database">database</span>
-            <span className="text-[15px] font-medium">Data Master</span>
           </Link>
           <Link className="flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 transition-all" to="/editor">
             <span className="material-symbols-outlined text-[22px]" data-icon="edit_note">edit_note</span>

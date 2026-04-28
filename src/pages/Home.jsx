@@ -38,10 +38,6 @@ function Home() {
             <span className="material-symbols-outlined" data-icon="settings">settings</span>
             <span className="text-[15px] font-medium">Pengaturan</span>
           </Link>
-          <Link className="flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 transition-all" to="/master">
-            <span className="material-symbols-outlined" data-icon="database">database</span>
-            <span className="text-[15px] font-medium">Data Master</span>
-          </Link>
           <Link className="flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 transition-all" to="/editor">
             <span className="material-symbols-outlined" data-icon="edit_note">edit_note</span>
             <span className="text-[15px] font-medium">Input Nilai</span>
@@ -173,7 +169,7 @@ function Home() {
           <section className="mt-4 lg:mt-12">
             <div className="flex items-center justify-between mb-3 lg:mb-6">
               <h3 className="text-base lg:text-2xl font-bold tracking-tight">Murid Terakhir Diedit</h3>
-              <Link to="/master" className="text-secondary font-semibold hover:text-white transition-colors text-sm">Lihat Semua</Link>
+              <Link to="/setup" className="text-secondary font-semibold hover:text-white transition-colors text-sm">Lihat Semua</Link>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">

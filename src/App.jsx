@@ -42,7 +42,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-          <Route path="/master" element={<ProtectedRoute><DataMaster /></ProtectedRoute>} />
+          <Route path="/master" element={<Navigate to="/setup" replace />} />
           <Route path="/setup" element={<ProtectedRoute><SetupSekolah /></ProtectedRoute>} />
           <Route path="/editor" element={<ProtectedRoute><ReportEditor /></ProtectedRoute>} />
           <Route path="/editor/:id" element={<ProtectedRoute><ReportEditor /></ProtectedRoute>} />

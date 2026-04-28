@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { useSchoolInfo, useUpdateSchoolInfo } from '../hooks/queries';
+import { useSchoolInfo, useUpdateSchoolInfo, useStudents, useCreateStudent, useDeleteStudent, useImportDapodik } from '../hooks/queries';
 import apiClient from '../lib/apiClient';
 
 function SetupSekolah() {
@@ -21,6 +21,29 @@ function SetupSekolah() {
   
   const [isSaved, setIsSaved] = useState(false);
   const [activeTab, setActiveTab] = useState('sekolah');
+
+  // Student management
+  const { data: studentsData } = useStudents();
+  const { mutate: addStudentMutate } = useCreateStudent();
+  const { mutate: deleteStudentMutate } = useDeleteStudent();
+  const { mutate: importDapodikMutate, isPending: isImporting } = useImportDapodik();
+  const students = studentsData || [];
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newStudent, setNewStudent] = useState({ name: '', phase: 'Fondasi', group: 'A', height: '', weight: '', gender: 'L', nisn: '', nik: '' });
+  const fileInputRef = useRef(null);
+  const filteredStudents = students.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  const handleImport = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (window.confirm(`Yakin ingin mengimpor data dari ${file.name}?`)) {
+      importDapodikMutate(file, {
+        onSuccess: (data) => { alert(`Berhasil mengimpor ${data.count} murid!`); e.target.value = null; },
+        onError: () => { alert('Gagal mengimpor data.'); e.target.value = null; }
+      });
+    } else { e.target.value = null; }
+  };
 
   const handleBackup = async () => {
     try {
@@ -83,10 +106,6 @@ function SetupSekolah() {
             <span className="material-symbols-outlined text-primary text-[22px]" data-icon="settings">settings</span>
             <span className="text-[15px]">Pengaturan</span>
           </div>
-          <Link className="flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 transition-all" to="/master">
-            <span className="material-symbols-outlined text-[22px]" data-icon="database">database</span>
-            <span className="text-[15px] font-medium">Data Master</span>
-          </Link>
           <Link className="flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 transition-all" to="/editor">
             <span className="material-symbols-outlined text-[22px]" data-icon="edit_note">edit_note</span>
             <span className="text-[15px] font-medium">Input Nilai</span>
@@ -144,6 +163,18 @@ function SetupSekolah() {
               className={`px-4 lg:px-6 py-2 lg:py-3 rounded-full text-xs lg:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'sekolah' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
             >
               Profil Sekolah
+            </button>
+            <button 
+              onClick={() => setActiveTab('siswa')}
+              className={`px-4 lg:px-6 py-2 lg:py-3 rounded-full text-xs lg:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'siswa' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+            >
+              Data Siswa
+            </button>
+            <button 
+              onClick={() => setActiveTab('kelas')}
+              className={`px-4 lg:px-6 py-2 lg:py-3 rounded-full text-xs lg:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'kelas' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+            >
+              Kelas & Guru
             </button>
             <button 
               onClick={() => setActiveTab('akun')}
@@ -284,6 +315,118 @@ function SetupSekolah() {
             </div>
           )}
 
+          {activeTab === 'siswa' && (
+            <div className="space-y-3 lg:space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between gap-3 bg-white/5 p-3 lg:p-4 rounded-2xl border border-white/10">
+                <div className="flex gap-2 lg:gap-4 w-full md:w-auto">
+                  <input type="file" accept=".csv" className="hidden" ref={fileInputRef} onChange={handleImport} />
+                  <button onClick={() => fileInputRef.current?.click()} disabled={isImporting}
+                    className="flex items-center gap-1.5 px-3 lg:px-5 py-2 lg:py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-full text-xs lg:text-sm font-bold shadow-inner">
+                    <span className="material-symbols-outlined text-base">{isImporting ? 'sync' : 'upload_file'}</span>
+                    {isImporting ? 'Mengimpor...' : 'Import Dapodik'}
+                  </button>
+                  <div className="relative flex-1 md:w-64">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="material-symbols-outlined text-slate-400 text-lg">search</span>
+                    </div>
+                    <input type="text" placeholder="Cari murid..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-black/20 border border-white/10 rounded-full pl-10 pr-4 py-2 lg:py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary shadow-inner" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-6">
+                {filteredStudents.map((student) => (
+                  <div key={student.id} className="glass-card rounded-2xl p-4 lg:p-5 flex flex-col gap-3 group hover:bg-white/5 transition-all relative overflow-hidden border-white/5">
+                    <div className="absolute top-3 right-3 flex gap-1.5 z-20">
+                      <Link to={`/print/${student.id}`} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/20 flex items-center justify-center text-slate-300 transition-colors">
+                        <span className="material-symbols-outlined text-[15px]">print</span>
+                      </Link>
+                      <button onClick={() => { if(window.confirm('Hapus murid ini? Data nilai akan hilang.')) deleteStudentMutate(student.id); }}
+                        className="w-8 h-8 rounded-full bg-accent/10 hover:bg-accent flex items-center justify-center text-accent hover:text-white transition-colors">
+                        <span className="material-symbols-outlined text-[15px]">delete</span>
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white text-sm lg:text-base font-black shadow-lg">
+                        {student.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h4 className="text-sm lg:text-base font-bold text-white truncate max-w-[120px]">{student.name}</h4>
+                        <p className="text-[10px] lg:text-xs text-slate-400 flex gap-1.5">
+                          <span className="px-1.5 py-0.5 rounded bg-white/10 border border-white/5">Fase {student.phase}</span>
+                          <span className="px-1.5 py-0.5 rounded bg-white/10 border border-white/5">Kelas {student.group}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-black/20 rounded-xl p-2 text-center">
+                        <span className="text-[9px] text-slate-400 uppercase font-bold">Tinggi</span>
+                        <span className="block font-bold text-secondary text-sm">{student.height || '--'} <span className="text-[9px] text-slate-500">cm</span></span>
+                      </div>
+                      <div className="bg-black/20 rounded-xl p-2 text-center">
+                        <span className="text-[9px] text-slate-400 uppercase font-bold">Berat</span>
+                        <span className="block font-bold text-secondary text-sm">{student.weight || '--'} <span className="text-[9px] text-slate-500">kg</span></span>
+                      </div>
+                    </div>
+                    <Link to={`/editor/${student.id}`} className="w-full py-2 bg-white/10 hover:bg-primary text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all">
+                      <span className="material-symbols-outlined text-[15px]">edit_document</span> Isi Raport
+                    </Link>
+                  </div>
+                ))}
+                {filteredStudents.length === 0 && (
+                  <div className="sm:col-span-2 xl:col-span-3 py-12 flex flex-col items-center justify-center text-center glass-card rounded-2xl">
+                    <span className="material-symbols-outlined text-slate-500 text-4xl mb-3">search_off</span>
+                    <p className="text-sm font-bold text-white mb-1">Tidak ada murid ditemukan</p>
+                    <p className="text-xs text-slate-400">Coba ubah kata kunci atau tambahkan murid baru.</p>
+                  </div>
+                )}
+              </div>
+
+              <button onClick={() => setShowAddModal(true)}
+                className="fixed bottom-20 lg:bottom-10 right-4 lg:right-10 w-14 h-14 bg-gradient-to-r from-secondary to-primary rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all z-50 border border-white/20">
+                <span className="material-symbols-outlined text-2xl">person_add</span>
+              </button>
+            </div>
+          )}
+
+          {activeTab === 'kelas' && (
+            <div className="space-y-3 lg:space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-6">
+                <div className="glass-card p-4 lg:p-6 rounded-2xl border-white/5">
+                  <div className="flex justify-between items-start mb-4 border-b border-white/10 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white text-base font-black shadow-lg">A</div>
+                      <div>
+                        <h4 className="text-sm lg:text-base font-bold text-white">Kelompok A</h4>
+                        <p className="text-[10px] lg:text-xs text-slate-400">Fase Fondasi</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-xs lg:text-sm">
+                    <div className="flex justify-between"><span className="text-slate-400">Wali Kelas:</span><span className="font-bold text-white">{schoolInfo?.teacher || '-'}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-400">Jumlah Siswa:</span><span className="font-bold text-emerald-400">{students.filter(s => s.group === 'A').length} Siswa</span></div>
+                  </div>
+                </div>
+                <div className="glass-card p-4 lg:p-6 rounded-2xl border-white/5">
+                  <div className="flex justify-between items-start mb-4 border-b border-white/10 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white text-base font-black shadow-lg">B</div>
+                      <div>
+                        <h4 className="text-sm lg:text-base font-bold text-white">Kelompok B</h4>
+                        <p className="text-[10px] lg:text-xs text-slate-400">Fase Fondasi</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-xs lg:text-sm">
+                    <div className="flex justify-between"><span className="text-slate-400">Wali Kelas:</span><span className="font-bold text-white">-</span></div>
+                    <div className="flex justify-between"><span className="text-slate-400">Jumlah Siswa:</span><span className="font-bold text-amber-400">{students.filter(s => s.group === 'B').length} Siswa</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'akun' && (
             <div className="glass-card rounded-2xl lg:rounded-[2rem] p-4 sm:p-6 lg:p-10 space-y-4 lg:space-y-8 relative overflow-hidden border-white/5">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
@@ -356,6 +499,82 @@ function SetupSekolah() {
           )}
         </div>
       </main>
+
+      {/* Add Student Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowAddModal(false)}>
+          <div className="w-full max-w-md bg-[#1a1f3d] border border-white/10 rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-black text-white">Tambah Murid Baru</h3>
+              <button onClick={() => setShowAddModal(false)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
+                <input type="text" value={newStudent.name} onChange={e => setNewStudent({...newStudent, name: e.target.value})}
+                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="Cth: Budi Santoso" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fase</label>
+                  <select value={newStudent.phase} onChange={e => setNewStudent({...newStudent, phase: e.target.value})}
+                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner appearance-none">
+                    <option className="bg-slate-900" value="Fondasi">Fondasi</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kelompok</label>
+                  <select value={newStudent.group} onChange={e => setNewStudent({...newStudent, group: e.target.value})}
+                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner appearance-none">
+                    <option className="bg-slate-900" value="A">A</option>
+                    <option className="bg-slate-900" value="B">B</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jenis Kelamin</label>
+                  <select value={newStudent.gender} onChange={e => setNewStudent({...newStudent, gender: e.target.value})}
+                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner appearance-none">
+                    <option className="bg-slate-900" value="L">Laki-laki</option>
+                    <option className="bg-slate-900" value="P">Perempuan</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NISN</label>
+                  <input type="text" value={newStudent.nisn} onChange={e => setNewStudent({...newStudent, nisn: e.target.value})}
+                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="Opsional" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tinggi (cm)</label>
+                  <input type="number" value={newStudent.height} onChange={e => setNewStudent({...newStudent, height: e.target.value})}
+                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="110" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Berat (kg)</label>
+                  <input type="number" value={newStudent.weight} onChange={e => setNewStudent({...newStudent, weight: e.target.value})}
+                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="20" />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setShowAddModal(false)} className="flex-1 py-3 bg-white/5 text-slate-300 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">Batal</button>
+              <button onClick={() => {
+                if (!newStudent.name.trim()) return alert('Nama harus diisi');
+                addStudentMutate({...newStudent});
+                setShowAddModal(false);
+                setNewStudent({ name: '', phase: 'Fondasi', group: 'A', height: '', weight: '', gender: 'L', nisn: '', nik: '' });
+              }} className="flex-[2] py-3 bg-gradient-to-r from-secondary to-primary text-white rounded-xl text-sm font-bold active:scale-95 transition-all shadow-lg">
+                Simpan Murid
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

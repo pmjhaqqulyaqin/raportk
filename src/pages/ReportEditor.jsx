@@ -198,10 +198,6 @@ function ReportEditor() {
               <span className="material-symbols-outlined text-[22px]" data-icon="settings">settings</span>
               <span className="text-[15px] font-medium">Pengaturan</span>
             </Link>
-            <Link className="flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 transition-all" to="/master">
-              <span className="material-symbols-outlined text-[22px]" data-icon="database">database</span>
-              <span className="text-[15px] font-medium">Data Master</span>
-            </Link>
             <div className="flex items-center gap-4 rounded-2xl bg-white/10 px-4 py-3 text-white font-bold backdrop-blur-md border border-white/5 shadow-lg">
               <span className="material-symbols-outlined text-primary text-[22px]" data-icon="edit_note">edit_note</span>
               <span className="text-[15px]">Input Nilai</span>
@@ -264,10 +260,6 @@ function ReportEditor() {
           <Link className="flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 transition-all" to="/setup">
             <span className="material-symbols-outlined text-[22px]" data-icon="settings">settings</span>
             <span className="text-[15px] font-medium">Pengaturan</span>
-          </Link>
-          <Link className="flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 transition-all" to="/master">
-            <span className="material-symbols-outlined text-[22px]" data-icon="database">database</span>
-            <span className="text-[15px] font-medium">Data Master</span>
           </Link>
           <div className="flex items-center gap-4 rounded-2xl bg-white/10 px-4 py-3 text-white font-bold backdrop-blur-md border border-white/5 shadow-lg">
             <span className="material-symbols-outlined text-primary text-[22px]" data-icon="edit_note">edit_note</span>
