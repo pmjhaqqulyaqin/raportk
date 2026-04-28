@@ -9,6 +9,7 @@ function SetupSekolah() {
   
   const [formData, setFormData] = useState({
     schoolName: '',
+    npsn: '',
     principal: '',
     principalNip: '',
     teacher: '',
@@ -201,6 +202,15 @@ function SetupSekolah() {
                     <input 
                       name="schoolName" value={formData.schoolName} onChange={handleChange} 
                       className="w-full bg-black/30 border border-white/10 rounded-xl lg:rounded-2xl px-4 py-3 lg:px-5 lg:py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest pl-1 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-xs">key</span> NPSN (Kode Sekolah)
+                    </label>
+                    <input 
+                      name="npsn" value={formData.npsn} onChange={handleChange} placeholder="Cth: 69860123"
+                      className="w-full bg-black/30 border border-emerald-500/20 rounded-xl lg:rounded-2xl px-4 py-3 lg:px-5 lg:py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner" 
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2">
@@ -500,74 +510,74 @@ function SetupSekolah() {
 
       {/* Add Student Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowAddModal(false)}>
-          <div className="w-full max-w-md bg-[#1a1f3d] border border-white/10 rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowAddModal(false)}>
+          <div className="w-full max-w-xs bg-[#151a30] border border-white/10 rounded-xl p-4 space-y-3 shadow-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-black text-white">Tambah Murid Baru</h3>
-              <button onClick={() => setShowAddModal(false)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-all">
-                <span className="material-symbols-outlined text-lg">close</span>
+              <h3 className="text-sm font-black text-white">Tambah Murid</h3>
+              <button onClick={() => setShowAddModal(false)} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white">
+                <span className="material-symbols-outlined text-base">close</span>
               </button>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
+                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
                 <input type="text" value={newStudent.name} onChange={e => setNewStudent({...newStudent, name: e.target.value})}
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="Cth: Budi Santoso" />
+                  className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="Cth: Budi Santoso" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fase</label>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Fase</label>
                   <select value={newStudent.phase} onChange={e => setNewStudent({...newStudent, phase: e.target.value})}
-                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner appearance-none">
+                    className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner appearance-none">
                     <option className="bg-slate-900" value="Fondasi">Fondasi</option>
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Kelompok</label>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Kelompok</label>
                   <select value={newStudent.group} onChange={e => setNewStudent({...newStudent, group: e.target.value})}
-                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner appearance-none">
+                    className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner appearance-none">
                     <option className="bg-slate-900" value="A">A</option>
                     <option className="bg-slate-900" value="B">B</option>
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jenis Kelamin</label>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Jenis Kelamin</label>
                   <select value={newStudent.gender} onChange={e => setNewStudent({...newStudent, gender: e.target.value})}
-                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner appearance-none">
+                    className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner appearance-none">
                     <option className="bg-slate-900" value="L">Laki-laki</option>
                     <option className="bg-slate-900" value="P">Perempuan</option>
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NISN</label>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">NISN</label>
                   <input type="text" value={newStudent.nisn} onChange={e => setNewStudent({...newStudent, nisn: e.target.value})}
-                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="Opsional" />
+                    className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="Opsional" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tinggi (cm)</label>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Tinggi (cm)</label>
                   <input type="number" value={newStudent.height} onChange={e => setNewStudent({...newStudent, height: e.target.value})}
-                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="110" />
+                    className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="110" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Berat (kg)</label>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Berat (kg)</label>
                   <input type="number" value={newStudent.weight} onChange={e => setNewStudent({...newStudent, weight: e.target.value})}
-                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="20" />
+                    className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="20" />
                 </div>
               </div>
             </div>
-            <div className="flex gap-3 pt-2">
-              <button onClick={() => setShowAddModal(false)} className="flex-1 py-3 bg-white/5 text-slate-300 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">Batal</button>
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => setShowAddModal(false)} className="flex-1 py-2.5 bg-white/5 text-slate-300 rounded-lg text-xs font-bold">Batal</button>
               <button onClick={() => {
                 if (!newStudent.name.trim()) return alert('Nama harus diisi');
                 addStudentMutate({...newStudent});
                 setShowAddModal(false);
                 setNewStudent({ name: '', phase: 'Fondasi', group: 'A', height: '', weight: '', gender: 'L', nisn: '', nik: '' });
-              }} className="flex-[2] py-3 bg-gradient-to-r from-secondary to-primary text-white rounded-xl text-sm font-bold active:scale-95 transition-all shadow-lg">
-                Simpan Murid
+              }} className="flex-[2] py-2.5 bg-gradient-to-r from-secondary to-primary text-white rounded-lg text-xs font-bold active:scale-95 transition-all">
+                Simpan
               </button>
             </div>
           </div>

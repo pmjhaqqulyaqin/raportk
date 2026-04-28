@@ -271,62 +271,61 @@ function TemplateManager() {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)}>
-          <div className="w-full max-w-lg bg-[#1a1f3d] border border-white/10 rounded-t-[2rem] sm:rounded-[2rem] p-6 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowModal(false)}>
+          <div className="w-full max-w-sm bg-[#151a30] border border-white/10 rounded-xl p-4 space-y-3 shadow-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black text-white">
+              <h3 className="text-sm font-black text-white">
                 {editingTemplate ? 'Edit Template' : 'Buat Template Baru'}
               </h3>
-              <button onClick={() => setShowModal(false)} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
-                <span className="material-symbols-outlined">close</span>
+              <button onClick={() => setShowModal(false)} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white">
+                <span className="material-symbols-outlined text-base">close</span>
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Nama Template</label>
+            <div className="space-y-2.5">
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Nama Template</label>
                 <input
                   value={formData.name}
                   onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Contoh: Sangat Baik, Mulai Berkembang..."
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner"
+                  placeholder="Cth: Sangat Baik, Mulai Berkembang..."
+                  className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Kategori</label>
-                <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Kategori</label>
+                <div className="grid grid-cols-2 gap-1.5">
                   {CATEGORIES.map(cat => (
                     <button
                       key={cat.id}
                       onClick={() => setFormData(prev => ({ ...prev, category: cat.id }))}
-                      className={`flex items-center gap-2 px-4 py-3 rounded-xl text-[12px] font-bold transition-all ${
+                      className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[10px] font-bold transition-all ${
                         formData.category === cat.id
                           ? `bg-gradient-to-r ${cat.color} text-white shadow-md`
                           : 'bg-white/5 text-slate-400 border border-white/5 hover:bg-white/10'
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[16px]">{cat.icon}</span>
+                      <span className="material-symbols-outlined text-[14px]">{cat.icon}</span>
                       {cat.id.length > 20 ? cat.id.substring(0, 18) + '...' : cat.id}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Filter: Phase / Group / Semester */}
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Target (Opsional)</label>
-                <div className="grid grid-cols-3 gap-2">
-                  <select value={formData.phase} onChange={e => setFormData(prev => ({ ...prev, phase: e.target.value }))} className="bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-white text-[12px] focus:outline-none focus:ring-2 focus:ring-secondary">
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Target (Opsional)</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  <select value={formData.phase} onChange={e => setFormData(prev => ({ ...prev, phase: e.target.value }))} className="bg-black/30 border border-white/10 rounded-lg px-2 py-2 text-white text-[10px] focus:outline-none focus:ring-2 focus:ring-secondary">
                     <option value="">Semua Fase</option>
                     <option value="Fondasi">Fondasi</option>
                   </select>
-                  <select value={formData.groupName} onChange={e => setFormData(prev => ({ ...prev, groupName: e.target.value }))} className="bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-white text-[12px] focus:outline-none focus:ring-2 focus:ring-secondary">
+                  <select value={formData.groupName} onChange={e => setFormData(prev => ({ ...prev, groupName: e.target.value }))} className="bg-black/30 border border-white/10 rounded-lg px-2 py-2 text-white text-[10px] focus:outline-none focus:ring-2 focus:ring-secondary">
                     <option value="">Semua Kelas</option>
                     <option value="A">Kelas A</option>
                     <option value="B">Kelas B</option>
                   </select>
-                  <select value={formData.semester} onChange={e => setFormData(prev => ({ ...prev, semester: e.target.value }))} className="bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-white text-[12px] focus:outline-none focus:ring-2 focus:ring-secondary">
+                  <select value={formData.semester} onChange={e => setFormData(prev => ({ ...prev, semester: e.target.value }))} className="bg-black/30 border border-white/10 rounded-lg px-2 py-2 text-white text-[10px] focus:outline-none focus:ring-2 focus:ring-secondary">
                     <option value="">Semua Smt</option>
                     <option value="Gasal">Gasal</option>
                     <option value="Genap">Genap</option>
@@ -334,24 +333,23 @@ function TemplateManager() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="flex justify-between items-center">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Isi Narasi Template</label>
-                  <span className="text-[10px] text-slate-500 font-bold">{formData.text.length} karakter (min. 20)</span>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Isi Narasi</label>
+                  <span className="text-[9px] text-slate-500 font-bold">{formData.text.length} chr (min 20)</span>
                 </div>
                 <textarea
                   value={formData.text}
                   onChange={e => setFormData(prev => ({ ...prev, text: e.target.value }))}
-                  placeholder="Gunakan [nama] untuk placeholder nama siswa. Contoh: [nama] menunjukkan perkembangan yang sangat baik..."
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner resize-none min-h-[160px] text-sm leading-relaxed"
+                  placeholder="Gunakan [nama] untuk placeholder nama siswa..."
+                  className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner resize-none min-h-[100px] leading-relaxed"
                 />
-                {/* Quick Insert Chips */}
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1">
                   {['[nama]', '[sekolah]', '[kelas]', '[semester]'].map(ph => (
                     <button
                       key={ph}
                       onClick={() => setFormData(prev => ({ ...prev, text: prev.text + ph }))}
-                      className="px-3 py-1.5 bg-indigo-500/15 text-indigo-300 border border-indigo-400/20 rounded-full text-[11px] font-bold hover:bg-indigo-500/30 active:scale-95 transition-all"
+                      className="px-2 py-1 bg-indigo-500/15 text-indigo-300 border border-indigo-400/20 rounded-full text-[9px] font-bold hover:bg-indigo-500/30 active:scale-95 transition-all"
                     >
                       + {ph}
                     </button>
@@ -360,16 +358,16 @@ function TemplateManager() {
               </div>
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <button onClick={() => setShowModal(false)} className="flex-1 py-3.5 bg-white/5 text-slate-300 rounded-xl font-bold hover:bg-white/10 transition-all">
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 bg-white/5 text-slate-300 rounded-lg text-xs font-bold">
                 Batal
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={!formData.name.trim() || formData.text.trim().length < 20 || isCreating || isUpdating}
-                className="flex-1 py-3.5 bg-gradient-to-r from-secondary to-primary text-white rounded-xl font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50"
+                className="flex-[2] py-2.5 bg-gradient-to-r from-secondary to-primary text-white rounded-lg text-xs font-bold active:scale-95 transition-all disabled:opacity-50"
               >
-                {isCreating || isUpdating ? 'Menyimpan...' : editingTemplate ? 'Simpan Perubahan' : 'Buat Template'}
+                {isCreating || isUpdating ? 'Menyimpan...' : editingTemplate ? 'Simpan' : 'Buat Template'}
               </button>
             </div>
           </div>
