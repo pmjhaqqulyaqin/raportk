@@ -171,80 +171,33 @@ function Home() {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
-              {/* Modern Contact Card 1 */}
-              <div className="glass-card rounded-2xl lg:rounded-[2rem] p-4 lg:p-6 flex flex-col gap-3 lg:gap-6 relative overflow-hidden group hover:bg-white/5 transition-all">
-                <div className="absolute top-0 right-0 p-6">
-                  <div className="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399]"></div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 lg:w-16 lg:h-16 rounded-xl lg:rounded-[1.5rem] bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white text-base lg:text-xl font-black shadow-lg">
-                    A
+              {students.slice(0, 6).map((student) => (
+                <div key={student.id} className="glass-card rounded-2xl lg:rounded-[2rem] p-4 lg:p-6 flex flex-col gap-3 lg:gap-5 relative overflow-hidden group hover:bg-white/5 transition-all">
+                  <div className="flex items-center gap-3 lg:gap-4">
+                    <div className="w-11 h-11 lg:w-14 lg:h-14 rounded-xl lg:rounded-[1.5rem] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-base lg:text-xl font-black shadow-lg">
+                      {student.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h4 className="text-sm lg:text-base font-bold text-white tracking-tight truncate max-w-[140px]">{student.name}</h4>
+                      <p className="text-[10px] lg:text-xs text-slate-400 mt-0.5">Fase {student.phase} - Kelas {student.group}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm lg:text-lg font-bold text-white tracking-tight">Adi Putra</h4>
-                    <p className="text-xs text-slate-400 mt-1">NISN: 0012345678</p>
-                  </div>
+                  <Link to={`/editor/${student.id}`} className="w-full py-2 lg:py-3 bg-white/10 hover:bg-primary text-white rounded-xl text-xs lg:text-sm font-bold text-center transition-all flex items-center justify-center gap-1.5">
+                    <span className="material-symbols-outlined text-[15px]">edit_document</span> Isi Raport
+                  </Link>
                 </div>
-                <div className="bg-black/20 rounded-xl lg:rounded-2xl p-3 lg:p-4 flex justify-between items-center">
-                  <div className="flex gap-2">
-                    <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center"><span className="material-symbols-outlined text-[14px]">check</span></span>
-                    <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center"><span className="material-symbols-outlined text-[14px]">check</span></span>
-                    <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center"><span className="material-symbols-outlined text-[14px]">check</span></span>
-                  </div>
-                  <span className="text-xs font-bold text-emerald-400">100%</span>
-                </div>
-                <Link to="/editor/1" className="w-full py-2 lg:py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs lg:text-sm font-bold text-center transition-all">Edit Raport</Link>
-              </div>
+              ))}
 
-              {/* Modern Contact Card 2 */}
-              <div className="glass-card rounded-2xl lg:rounded-[2rem] p-4 lg:p-6 flex flex-col gap-3 lg:gap-6 relative overflow-hidden group hover:bg-white/5 transition-all border-primary/30">
-                <div className="absolute top-0 right-0 p-6">
-                  <div className="w-3 h-3 rounded-full bg-amber-400 shadow-[0_0_12px_#fbbf24] animate-pulse"></div>
+              {students.length === 0 && (
+                <div className="sm:col-span-2 lg:col-span-3 py-10 flex flex-col items-center justify-center text-center glass-card rounded-2xl">
+                  <span className="material-symbols-outlined text-slate-500 text-4xl mb-3">group_add</span>
+                  <p className="text-sm font-bold text-white mb-1">Belum ada data murid</p>
+                  <p className="text-xs text-slate-400 mb-4">Tambahkan murid di halaman Pengaturan.</p>
+                  <Link to="/setup" className="px-5 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/80 transition-all">
+                    Tambah Murid
+                  </Link>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 lg:w-16 lg:h-16 rounded-xl lg:rounded-[1.5rem] bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white text-base lg:text-xl font-black shadow-lg">
-                    B
-                  </div>
-                  <div>
-                    <h4 className="text-sm lg:text-lg font-bold text-white tracking-tight">Budi Santoso</h4>
-                    <p className="text-xs text-slate-400 mt-1">NISN: 0012345679</p>
-                  </div>
-                </div>
-                <div className="bg-black/20 rounded-xl lg:rounded-2xl p-3 lg:p-4 flex justify-between items-center">
-                  <div className="flex gap-2">
-                    <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center"><span className="material-symbols-outlined text-[14px]">check</span></span>
-                    <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center"><span className="material-symbols-outlined text-[14px]">edit</span></span>
-                    <span className="w-6 h-6 rounded-full bg-white/5 text-slate-500 flex items-center justify-center"><span className="material-symbols-outlined text-[14px]">remove</span></span>
-                  </div>
-                  <span className="text-xs font-bold text-amber-400">50%</span>
-                </div>
-                <Link to="/editor/2" className="w-full py-2 lg:py-3 bg-primary hover:bg-primary/80 text-white rounded-xl text-xs lg:text-sm font-bold text-center transition-all shadow-lg shadow-primary/20">Lanjutkan</Link>
-              </div>
-
-              {/* Modern Contact Card 3 */}
-              <div className="glass-card rounded-[2rem] p-6 flex flex-col gap-6 relative overflow-hidden group hover:bg-white/5 transition-all hidden lg:flex">
-                <div className="absolute top-0 right-0 p-6">
-                  <div className="w-3 h-3 rounded-full bg-slate-500"></div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center text-white text-xl font-black shadow-lg">
-                    C
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-bold text-white tracking-tight">Citra Kirana</h4>
-                    <p className="text-xs text-slate-400 mt-1">NISN: 0012345680</p>
-                  </div>
-                </div>
-                <div className="bg-black/20 rounded-2xl p-4 flex justify-between items-center">
-                  <div className="flex gap-2">
-                    <span className="w-6 h-6 rounded-full bg-white/5 text-slate-500 flex items-center justify-center"><span className="material-symbols-outlined text-[14px]">remove</span></span>
-                    <span className="w-6 h-6 rounded-full bg-white/5 text-slate-500 flex items-center justify-center"><span className="material-symbols-outlined text-[14px]">remove</span></span>
-                    <span className="w-6 h-6 rounded-full bg-white/5 text-slate-500 flex items-center justify-center"><span className="material-symbols-outlined text-[14px]">remove</span></span>
-                  </div>
-                  <span className="text-xs font-bold text-slate-400">0%</span>
-                </div>
-                <Link to="/editor/3" className="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-bold text-center transition-all">Mulai Raport</Link>
-              </div>
+              )}
             </div>
           </section>
         </div>
