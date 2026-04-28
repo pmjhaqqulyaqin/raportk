@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { auth } from '../lib/auth';
+import { fromNodeHeaders } from "better-auth/node";
 
 export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const session = await auth.api.getSession({
-            headers: req.headers
+            headers: fromNodeHeaders(req.headers)
         });
 
         if (!session || !session.user) {

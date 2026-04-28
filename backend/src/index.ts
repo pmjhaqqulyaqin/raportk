@@ -3,7 +3,7 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 import path from 'path';
 import { auth } from './lib/auth';
-import { toNodeHandler } from "better-auth/node";
+import { toNodeHandler, fromNodeHeaders } from "better-auth/node";
 
 import studentsRouter from './routes/students';
 import schoolInfoRouter from './routes/schoolInfo';
@@ -43,7 +43,7 @@ app.use('/api/ai', aiRouter);
 app.get('/api/protected', async (req, res) => {
     // using the getSession method from Better Auth
     const session = await auth.api.getSession({
-        headers: req.headers
+        headers: fromNodeHeaders(req.headers)
     });
     
     if (!session) {
