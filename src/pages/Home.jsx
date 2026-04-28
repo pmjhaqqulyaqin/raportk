@@ -1,7 +1,7 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useStudents, useSchoolInfo } from '../hooks/queries';
-import { useSession } from '../lib/authClient';
+import { useSession, authClient } from '../lib/authClient';
 
 function Home() {
   const { data: session } = useSession();
@@ -16,7 +16,19 @@ function Home() {
   const totalL = students.filter(s => s.gender === 'L').length;
   const totalP = students.filter(s => s.gender === 'P').length;
   const totalKelas = new Set(students.map(s => s.group)).size || 0;
-  const totalGuru = 2; // Default (Kepala Sekolah + Guru Kelas)
+  const totalGuru = 2;
+  const navigate = useNavigate();
+
+  const [showNotif, setShowNotif] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showUploadPhoto, setShowUploadPhoto] = useState(false);
+  const [editName, setEditName] = useState(session?.user?.name || '');
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    navigate('/login');
+  };
 
   return (
     <div className="font-sans overflow-x-hidden min-h-screen text-white pb-20">
@@ -60,25 +72,81 @@ function Home() {
       <main className="lg:ml-72 min-h-screen">
         {/* Top App Bar */}
         <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-between px-4 lg:px-10 glass-panel border-b border-white/5">
-          <div className="flex items-center gap-4">
-            <button className="lg:hidden p-1.5 text-white bg-white/5 rounded-full backdrop-blur-md">
-              <span className="material-symbols-outlined text-xl" data-icon="menu">menu</span>
-            </button>
-            <h2 className="text-lg font-bold text-white tracking-tight hidden sm:block">Overview</h2>
+          <div className="flex flex-col justify-center">
+            <h2 className="text-xs lg:text-sm font-bold text-slate-400 leading-tight">
+              {(() => { const h = new Date().getHours(); if (h < 11) return '☀️ Selamat Pagi'; if (h < 15) return '🌤️ Selamat Siang'; if (h < 18) return '🌅 Selamat Sore'; return '🌙 Selamat Malam'; })()}
+            </h2>
+            <p className="text-sm lg:text-base font-black text-white leading-tight truncate max-w-[180px] lg:max-w-none">{session?.user?.name || 'Guru'}</p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full glass-card text-slate-200 text-xs font-bold tracking-wider">
+          <div className="flex items-center gap-2 lg:gap-4">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full glass-card text-slate-200 text-[10px] lg:text-xs font-bold tracking-wider">
               <span className="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_#06B6D4]"></span>
               {schoolInfo.academicYear} - {schoolInfo.semester}
             </div>
-            <button className="w-8 h-8 flex items-center justify-center text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors relative">
-              <span className="material-symbols-outlined text-lg" data-icon="notifications">notifications</span>
-              <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full"></span>
+            <button onClick={() => setShowNotif(!showNotif)} className="w-8 h-8 flex items-center justify-center text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors relative">
+              <span className="material-symbols-outlined text-lg">notifications</span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full"></span>
             </button>
-            <div className="lg:hidden w-8 h-8 rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white font-black text-xs shadow-inner">
+            <button onClick={() => setShowProfile(!showProfile)} className="w-8 h-8 rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white font-black text-xs shadow-inner hover:scale-110 transition-all">
               {session?.user?.name?.charAt(0).toUpperCase() || 'G'}
-            </div>
+            </button>
           </div>
+
+          {/* Notification Dropdown */}
+          {showNotif && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowNotif(false)}></div>
+              <div className="absolute top-14 right-12 lg:right-20 w-72 glass-card rounded-2xl p-4 border border-white/10 shadow-2xl z-50 space-y-3">
+                <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <span className="material-symbols-outlined text-secondary text-base">notifications</span> Notifikasi
+                </h4>
+                <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                  <p className="text-xs font-bold text-white">📅 Tahun Ajaran Aktif</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{schoolInfo.academicYear} - Semester {schoolInfo.semester}</p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                  <p className="text-xs font-bold text-white">👥 Total Murid</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{totalStudents} siswa terdaftar ({totalL} L, {totalP} P)</p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                  <p className="text-xs font-bold text-white">✅ Raport TK v1.0</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Aplikasi sudah versi terbaru.</p>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Profile Dropdown */}
+          {showProfile && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowProfile(false)}></div>
+              <div className="absolute top-14 right-4 lg:right-10 w-64 glass-card rounded-2xl p-4 border border-white/10 shadow-2xl z-50 space-y-3">
+                <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white font-black text-sm shadow-lg">
+                    {session?.user?.name?.charAt(0).toUpperCase() || 'G'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white truncate">{session?.user?.name || 'Guru'}</p>
+                    <p className="text-[10px] text-slate-400 truncate">{session?.user?.email || ''}</p>
+                  </div>
+                </div>
+                <button onClick={() => { setShowProfile(false); setShowEditProfile(true); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-left">
+                  <span className="material-symbols-outlined text-base text-slate-300">edit</span>
+                  <span className="text-xs font-bold text-slate-200">Edit Profil</span>
+                </button>
+                <button onClick={() => { setShowProfile(false); setShowUploadPhoto(true); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-left">
+                  <span className="material-symbols-outlined text-base text-slate-300">photo_camera</span>
+                  <span className="text-xs font-bold text-slate-200">Upload Foto Profil</span>
+                </button>
+                <div className="border-t border-white/10 pt-2">
+                  <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent/10 transition-colors text-left">
+                    <span className="material-symbols-outlined text-base text-accent">logout</span>
+                    <span className="text-xs font-bold text-accent">Keluar</span>
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </header>
 
         {/* Content Canvas */}
@@ -202,6 +270,45 @@ function Home() {
           </section>
         </div>
       </main>
+
+      {/* Edit Profile Modal */}
+      {showEditProfile && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowEditProfile(false)}>
+          <div className="w-full max-w-sm bg-[#1a1f3d] border border-white/10 rounded-t-2xl sm:rounded-2xl p-5 space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-black text-white">Edit Profil</h3>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
+              <input type="text" value={editName} onChange={e => setEditName(e.target.value)}
+                className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</label>
+              <input type="email" value={session?.user?.email || ''} disabled
+                className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-400 shadow-inner opacity-60" />
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button onClick={() => setShowEditProfile(false)} className="flex-1 py-3 bg-white/5 text-slate-300 rounded-xl text-sm font-bold">Batal</button>
+              <button onClick={async () => {
+                try { await authClient.updateUser({ name: editName }); setShowEditProfile(false); window.location.reload(); } catch {}
+              }} className="flex-[2] py-3 bg-gradient-to-r from-secondary to-primary text-white rounded-xl text-sm font-bold active:scale-95 transition-all">Simpan</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Photo Modal */}
+      {showUploadPhoto && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowUploadPhoto(false)}>
+          <div className="w-full max-w-sm bg-[#1a1f3d] border border-white/10 rounded-t-2xl sm:rounded-2xl p-5 space-y-4 shadow-2xl text-center" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-black text-white">Upload Foto Profil</h3>
+            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white text-3xl font-black shadow-lg">
+              {session?.user?.name?.charAt(0).toUpperCase() || 'G'}
+            </div>
+            <p className="text-xs text-slate-400">Fitur upload foto profil akan segera tersedia.</p>
+            <button onClick={() => setShowUploadPhoto(false)} className="w-full py-3 bg-white/5 text-slate-300 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">Tutup</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
