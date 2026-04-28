@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <!-- PWA: Apple Touch Icon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/pwa-icon-180x180.png" />
+
+    <!-- PWA: Web App Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- PWA: Theme & Status Bar -->
+    <meta name="theme-color" content="#1a1028" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CetakRaport" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="CetakRaport" />
+    <meta name="msapplication-TileColor" content="#1a1028" />
+    <meta name="msapplication-TileImage" content="/pwa-icon-192x192.png" />
+
+    <!-- SEO -->
+    <meta name="description" content="CetakRaport TK - Aplikasi cetak raport digital untuk TK/PAUD" />
+
+    <title>CetakRaport TK</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+
+    <!-- PWA: Early capture of install prompt + Service Worker -->
+    <script>
+      window.__pwaInstallEvent = null;
+      window.__pwaInstallCallbacks = [];
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        window.__pwaInstallEvent = e;
+        console.log('[PWA] beforeinstallprompt captured early');
+        window.__pwaInstallCallbacks.forEach(function(cb) { cb(e); });
+      });
+
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js')
+            .then(function(reg) {
+              console.log('[PWA] Service Worker registered, scope:', reg.scope);
+              setInterval(function() { reg.update(); }, 60 * 60 * 1000);
+            })
+            .catch(function(err) {
+              console.warn('[PWA] Service Worker registration failed:', err);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
+
