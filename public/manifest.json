@@ -1,13 +1,13 @@
 {
-  "name": "CetakRaport TK - Raport Digital",
-  "short_name": "CetakRaport",
+  "name": "Raport TK - Raport Digital",
+  "short_name": "Raport TK",
   "description": "Aplikasi cetak raport digital untuk TK/PAUD",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#1a1028",
-  "background_color": "#1a1028",
+  "theme_color": "#1E40AF",
+  "background_color": "#1E40AF",
   "categories": ["education"],
   "lang": "id",
   "dir": "ltr",
@@ -35,7 +35,7 @@
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
-      "url": "/master",
+      "url": "/",
       "icons": [{ "src": "/pwa-icon-192x192.png", "sizes": "192x192" }]
     }
   ]

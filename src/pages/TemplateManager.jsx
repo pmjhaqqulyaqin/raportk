@@ -110,9 +110,7 @@ function TemplateManager() {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col h-screen p-4 gap-4 fixed left-0 top-0 w-72 border-r border-white/10 glass-panel z-50">
         <div className="flex flex-col gap-1 px-4 py-8">
-          <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-primary/30">
-            <span className="material-symbols-outlined text-white text-2xl">school</span>
-          </div>
+          <img src="/logo.png" alt="Logo" className="w-12 h-12 rounded-2xl object-contain mb-4 shadow-lg" />
           <h1 className="text-2xl font-black text-white tracking-tight">CetakRaport</h1>
           <p className="text-sm text-slate-400 font-medium">TK Modern Dashboard</p>
         </div>
