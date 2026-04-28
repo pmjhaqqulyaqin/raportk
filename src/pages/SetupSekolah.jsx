@@ -64,7 +64,7 @@ function SetupSekolah() {
   }
 
   return (
-    <div className="font-sans overflow-x-hidden min-h-screen text-white pb-32">
+    <div className="font-sans overflow-x-hidden min-h-screen text-white pb-20">
       {/* Navigation Drawer (Desktop) */}
       <aside className="hidden lg:flex flex-col h-screen p-4 gap-4 fixed left-0 top-0 w-72 border-r border-white/10 glass-panel z-50">
         <div className="flex flex-col gap-1 px-4 py-8">
@@ -110,89 +110,89 @@ function SetupSekolah() {
       {/* Main Canvas */}
       <main className="lg:ml-72 min-h-screen">
         {/* TopAppBar */}
-        <header className="sticky top-0 z-40 flex h-20 w-full items-center justify-between px-6 lg:px-10 glass-panel border-b border-white/5">
+        <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-between px-4 lg:px-10 glass-panel border-b border-white/5">
           <div className="flex items-center gap-4">
-            <button className="lg:hidden p-2 text-white bg-white/5 rounded-full backdrop-blur-md">
-              <span className="material-symbols-outlined" data-icon="menu">menu</span>
+            <button className="lg:hidden p-1.5 text-white bg-white/5 rounded-full backdrop-blur-md">
+              <span className="material-symbols-outlined text-xl" data-icon="menu">menu</span>
             </button>
-            <h2 className="text-xl font-bold text-white tracking-tight hidden sm:block">Pengaturan Sistem</h2>
+            <h2 className="text-lg font-bold text-white tracking-tight hidden sm:block">Pengaturan Sistem</h2>
           </div>
         </header>
 
         {/* Content Body */}
-        <div className="p-6 lg:p-10 space-y-8 max-w-[1000px] mx-auto">
+        <div className="p-3 lg:p-10 space-y-3 lg:space-y-8 max-w-[1000px] mx-auto">
           {/* Header Action / Search */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 glass-card p-6 rounded-[2rem] border-secondary/20 relative overflow-hidden">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 lg:gap-6 glass-card p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] border-secondary/20 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-20">
               <div className="w-32 h-32 bg-secondary rounded-full blur-3xl"></div>
             </div>
-            <div className="relative z-10 flex items-center gap-4">
-              <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white shadow-lg">
-                <span className="material-symbols-outlined text-3xl" data-icon="settings_applications">settings_applications</span>
+            <div className="relative z-10 flex items-center gap-3 lg:gap-4">
+              <div className="w-10 h-10 lg:w-16 lg:h-16 rounded-xl lg:rounded-[1.5rem] bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white shadow-lg">
+                <span className="material-symbols-outlined text-xl lg:text-3xl" data-icon="settings_applications">settings_applications</span>
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-white tracking-tight">Konfigurasi Sistem</h3>
-                <p className="text-slate-400 text-sm mt-1">Data sekolah, tahun ajaran, dan tanda tangan</p>
+                <h3 className="text-base lg:text-2xl font-bold text-white tracking-tight">Konfigurasi Sistem</h3>
+                <p className="text-slate-400 text-xs lg:text-sm mt-0.5">Data sekolah, tahun ajaran, dan tanda tangan</p>
               </div>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-4 border-b border-white/10 pb-4">
+          <div className="flex gap-2 lg:gap-4 overflow-x-auto scrollbar-hide border-b border-white/10 pb-3 lg:pb-4">
             <button 
               onClick={() => setActiveTab('sekolah')}
-              className={`px-6 py-3 rounded-full font-bold transition-all ${activeTab === 'sekolah' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+              className={`px-4 lg:px-6 py-2 lg:py-3 rounded-full text-xs lg:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'sekolah' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
             >
               Profil Sekolah
             </button>
             <button 
               onClick={() => setActiveTab('akun')}
-              className={`px-6 py-3 rounded-full font-bold transition-all ${activeTab === 'akun' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+              className={`px-4 lg:px-6 py-2 lg:py-3 rounded-full text-xs lg:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'akun' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
             >
               Manajemen Akun
             </button>
             <button 
               onClick={() => setActiveTab('backup')}
-              className={`px-6 py-3 rounded-full font-bold transition-all ${activeTab === 'backup' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+              className={`px-4 lg:px-6 py-2 lg:py-3 rounded-full text-xs lg:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'backup' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
             >
               Backup & Restore
             </button>
           </div>
 
           {activeTab === 'sekolah' && (
-            <div className="glass-card rounded-[2rem] p-6 sm:p-10 space-y-10 relative overflow-hidden border-white/5">
-              <div className="space-y-6">
-                <h4 className="text-lg font-black text-white tracking-tight flex items-center gap-2 border-b border-white/10 pb-4">
+            <div className="glass-card rounded-2xl lg:rounded-[2rem] p-4 sm:p-6 lg:p-10 space-y-6 lg:space-y-10 relative overflow-hidden border-white/5">
+              <div className="space-y-4 lg:space-y-6">
+                <h4 className="text-sm lg:text-lg font-black text-white tracking-tight flex items-center gap-2 border-b border-white/10 pb-3 lg:pb-4">
                   <span className="material-symbols-outlined text-secondary" data-icon="apartment">apartment</span>
                   Data Instansi & Kelas
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-6">
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-[11px] font-bold text-slate-300 uppercase tracking-widest pl-1">Nama TK/PAUD</label>
                     <input 
                       name="schoolName" value={formData.schoolName} onChange={handleChange} 
-                      className="w-full bg-black/30 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" 
+                      className="w-full bg-black/30 border border-white/10 rounded-xl lg:rounded-2xl px-4 py-3 lg:px-5 lg:py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" 
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-[11px] font-bold text-slate-300 uppercase tracking-widest pl-1">Lokasi / Kota</label>
                     <input 
                       name="location" value={formData.location} onChange={handleChange} 
-                      className="w-full bg-black/30 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" 
+                      className="w-full bg-black/30 border border-white/10 rounded-xl lg:rounded-2xl px-4 py-3 lg:px-5 lg:py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" 
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold text-slate-300 uppercase tracking-widest pl-1">Tahun Ajaran</label>
                     <input 
                       name="academicYear" value={formData.academicYear} onChange={handleChange} 
-                      className="w-full bg-black/30 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" 
+                      className="w-full bg-black/30 border border-white/10 rounded-xl lg:rounded-2xl px-4 py-3 lg:px-5 lg:py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" 
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold text-slate-300 uppercase tracking-widest pl-1">Semester</label>
                     <select 
                       name="semester" value={formData.semester} onChange={handleChange} 
-                      className="w-full bg-black/30 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner appearance-none"
+                      className="w-full bg-black/30 border border-white/10 rounded-xl lg:rounded-2xl px-4 py-3 lg:px-5 lg:py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner appearance-none"
                     >
                       <option className="bg-slate-900" value="Gasal">1 (Gasal)</option>
                       <option className="bg-slate-900" value="Genap">2 (Genap)</option>
@@ -202,24 +202,24 @@ function SetupSekolah() {
                     <label className="text-[11px] font-bold text-slate-300 uppercase tracking-widest pl-1">Tanggal Raport</label>
                     <input 
                       name="date" value={formData.date} onChange={handleChange} placeholder="Contoh: 20 Juni 2025"
-                      className="w-full bg-black/30 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" 
+                      className="w-full bg-black/30 border border-white/10 rounded-xl lg:rounded-2xl px-4 py-3 lg:px-5 lg:py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" 
                     />
                   </div>
                 </div>
               </div>
 
               <div className="space-y-6">
-                <h4 className="text-lg font-black text-white tracking-tight flex items-center gap-2 border-b border-white/10 pb-4 mt-8">
+                <h4 className="text-sm lg:text-lg font-black text-white tracking-tight flex items-center gap-2 border-b border-white/10 pb-3 lg:pb-4 mt-4 lg:mt-8">
                   <span className="material-symbols-outlined text-accent" data-icon="signature">signature</span>
                   Data Tanda Tangan
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4 bg-black/20 p-6 rounded-[1.5rem] border border-white/5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-6">
+                  <div className="space-y-3 lg:space-y-4 bg-black/20 p-4 lg:p-6 rounded-2xl lg:rounded-[1.5rem] border border-white/5">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-slate-300">
                         <span className="material-symbols-outlined" data-icon="person_4">person_4</span>
                       </div>
-                      <h5 className="font-bold text-white text-lg">Kepala Sekolah</h5>
+                      <h5 className="font-bold text-white text-sm lg:text-lg">Kepala Sekolah</h5>
                     </div>
                     <div className="space-y-2 pt-2">
                       <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">Nama Lengkap & Gelar</label>
@@ -237,12 +237,12 @@ function SetupSekolah() {
                     </div>
                   </div>
 
-                  <div className="space-y-4 bg-black/20 p-6 rounded-[1.5rem] border border-white/5">
+                  <div className="space-y-3 lg:space-y-4 bg-black/20 p-4 lg:p-6 rounded-2xl lg:rounded-[1.5rem] border border-white/5">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-slate-300">
                         <span className="material-symbols-outlined" data-icon="person">person</span>
                       </div>
-                      <h5 className="font-bold text-white text-lg">Guru Kelas</h5>
+                      <h5 className="font-bold text-white text-sm lg:text-lg">Guru Kelas</h5>
                     </div>
                     <div className="space-y-2 pt-2">
                       <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">Nama Lengkap & Gelar</label>
@@ -262,11 +262,11 @@ function SetupSekolah() {
                 </div>
               </div>
 
-              <div className="pt-8 border-t border-white/10 flex items-center justify-end">
+              <div className="pt-4 lg:pt-8 border-t border-white/10 flex items-center justify-end">
                 <button 
                   onClick={handleSave} 
                   disabled={isUpdating}
-                  className="w-full sm:w-auto py-4 px-10 rounded-2xl font-bold text-white bg-gradient-to-r from-secondary to-primary hover:scale-[1.02] active:scale-95 shadow-lg shadow-primary/30 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                  className="w-full sm:w-auto py-3 lg:py-4 px-8 lg:px-10 rounded-xl lg:rounded-2xl text-sm lg:text-base font-bold text-white bg-gradient-to-r from-secondary to-primary hover:scale-[1.02] active:scale-95 shadow-lg shadow-primary/30 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
                 >
                   {isUpdating ? 'Menyimpan...' : isSaved ? (
                     <>
@@ -285,7 +285,7 @@ function SetupSekolah() {
           )}
 
           {activeTab === 'akun' && (
-            <div className="glass-card rounded-[2rem] p-6 sm:p-10 space-y-8 relative overflow-hidden border-white/5">
+            <div className="glass-card rounded-2xl lg:rounded-[2rem] p-4 sm:p-6 lg:p-10 space-y-4 lg:space-y-8 relative overflow-hidden border-white/5">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
                 <h4 className="text-lg font-black text-white tracking-tight flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary" data-icon="manage_accounts">manage_accounts</span>
@@ -335,7 +335,7 @@ function SetupSekolah() {
           )}
 
           {activeTab === 'backup' && (
-            <div className="glass-card rounded-[2rem] p-6 sm:p-10 space-y-10 relative overflow-hidden border-white/5">
+            <div className="glass-card rounded-2xl lg:rounded-[2rem] p-4 sm:p-6 lg:p-10 space-y-6 lg:space-y-10 relative overflow-hidden border-white/5">
               <div className="space-y-6">
                 <h4 className="text-lg font-black text-white tracking-tight flex items-center gap-2 border-b border-white/10 pb-4">
                   <span className="material-symbols-outlined text-secondary" data-icon="cloud_download">cloud_download</span>

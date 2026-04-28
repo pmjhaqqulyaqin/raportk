@@ -179,7 +179,7 @@ function ReportEditor() {
   // Jika tidak ada ID murid yang dipilih, tampilkan halaman pilih murid
   if (!id || !student) {
     return (
-      <div className="font-sans min-h-screen text-white pb-32 overflow-x-hidden flex flex-col lg:flex-row">
+      <div className="font-sans min-h-screen text-white pb-20 overflow-x-hidden flex flex-col lg:flex-row">
         {/* Navigation Drawer (Desktop) */}
         <aside className="hidden lg:flex flex-col h-screen p-4 gap-4 fixed left-0 top-0 w-72 border-r border-white/10 glass-panel z-50">
           <div className="flex flex-col gap-1 px-4 py-8">
@@ -214,26 +214,26 @@ function ReportEditor() {
         </aside>
 
         <main className="lg:ml-72 flex-1 flex flex-col relative z-10 w-full">
-          <header className="sticky top-0 z-40 flex h-20 w-full items-center px-6 lg:px-10 glass-panel border-b border-white/5">
-            <h2 className="text-xl font-bold tracking-tight">Pilih Siswa untuk Input Nilai</h2>
+          <header className="sticky top-0 z-40 flex h-14 w-full items-center px-4 lg:px-10 glass-panel border-b border-white/5">
+            <h2 className="text-base lg:text-xl font-bold tracking-tight">Pilih Siswa untuk Input Nilai</h2>
           </header>
-          <div className="p-6 lg:p-10 max-w-[1000px] mx-auto w-full space-y-6 flex-1">
-            <div className="glass-card rounded-[2rem] p-8 border-primary/20 text-center mb-8">
-              <h3 className="text-2xl font-black text-white mb-2">Input Nilai Rapor</h3>
-              <p className="text-slate-400 text-sm">Pilih siswa dari daftar di bawah ini untuk mulai mengisi narasi capaian pembelajaran Kurikulum Merdeka.</p>
+          <div className="p-3 lg:p-10 max-w-[1000px] mx-auto w-full space-y-3 lg:space-y-6 flex-1">
+            <div className="glass-card rounded-2xl lg:rounded-[2rem] p-4 lg:p-8 border-primary/20 text-center mb-4 lg:mb-8">
+              <h3 className="text-lg lg:text-2xl font-black text-white mb-1 lg:mb-2">Input Nilai Rapor</h3>
+              <p className="text-slate-400 text-xs lg:text-sm">Pilih siswa dari daftar di bawah ini untuk mulai mengisi narasi capaian pembelajaran Kurikulum Merdeka.</p>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 lg:gap-6">
               {students.map(s => (
-                <Link to={`/editor/${s.id}`} key={s.id} className="glass-card rounded-[1.5rem] p-6 flex flex-col items-center gap-4 hover:scale-105 transition-all border-white/5 hover:border-primary/50 group">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-black shadow-lg">
+                <Link to={`/editor/${s.id}`} key={s.id} className="glass-card rounded-2xl lg:rounded-[1.5rem] p-3 lg:p-6 flex flex-col items-center gap-2 lg:gap-4 hover:scale-105 transition-all border-white/5 hover:border-primary/50 group">
+                  <div className="w-10 h-10 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-base lg:text-2xl font-black shadow-lg">
                     {s.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="text-center">
-                    <h4 className="text-lg font-bold text-white truncate max-w-[180px]">{s.name}</h4>
-                    <p className="text-xs text-slate-400 mt-1">Fase {s.phase} - Kelas {s.group}</p>
+                    <h4 className="text-sm lg:text-lg font-bold text-white truncate max-w-[140px] lg:max-w-[180px]">{s.name}</h4>
+                    <p className="text-[10px] lg:text-xs text-slate-400 mt-0.5">Fase {s.phase} - Kelas {s.group}</p>
                   </div>
-                  <div className="w-full mt-2 py-2 bg-white/10 rounded-lg text-center text-sm font-bold group-hover:bg-primary transition-colors">
+                  <div className="w-full mt-1 lg:mt-2 py-1.5 lg:py-2 bg-white/10 rounded-lg text-center text-xs lg:text-sm font-bold group-hover:bg-primary transition-colors">
                     Pilih Siswa
                   </div>
                 </Link>
@@ -246,7 +246,7 @@ function ReportEditor() {
   }
 
   return (
-    <div className="font-sans overflow-x-hidden min-h-screen text-white pb-32">
+    <div className="font-sans overflow-x-hidden min-h-screen text-white pb-20">
       {/* Navigation Drawer (Desktop) */}
       <aside className="hidden lg:flex flex-col h-screen p-4 gap-4 fixed left-0 top-0 w-72 border-r border-white/10 glass-panel z-50">
         <div className="flex flex-col gap-1 px-4 py-8">
@@ -292,48 +292,48 @@ function ReportEditor() {
       {/* Main Content Area */}
       <main className="lg:ml-72 min-h-screen">
         {/* Top App Bar */}
-        <header className="sticky top-0 z-40 flex h-20 w-full items-center justify-between px-6 lg:px-10 glass-panel border-b border-white/5">
-          <div className="flex items-center gap-4">
-            <button className="lg:hidden p-2 text-white bg-white/5 rounded-full backdrop-blur-md">
-              <span className="material-symbols-outlined" data-icon="menu">menu</span>
+        <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-between px-4 lg:px-10 glass-panel border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <button className="lg:hidden p-1.5 text-white bg-white/5 rounded-full backdrop-blur-md">
+              <span className="material-symbols-outlined text-xl" data-icon="menu">menu</span>
             </button>
-            <h2 className="text-xl font-bold text-white tracking-tight hidden sm:block">Editor Raport</h2>
+            <h2 className="text-base lg:text-xl font-bold text-white tracking-tight hidden sm:block">Editor Raport</h2>
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full glass-card text-slate-200 text-xs font-bold tracking-wider">
               {schoolInfo?.academicYear} - {schoolInfo?.semester}
             </div>
-            <button className="w-10 h-10 flex items-center justify-center text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors relative">
-              <span className="material-symbols-outlined" data-icon="notifications">notifications</span>
+            <button className="w-8 h-8 flex items-center justify-center text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors relative">
+              <span className="material-symbols-outlined text-lg" data-icon="notifications">notifications</span>
             </button>
           </div>
         </header>
 
         {/* Content Canvas */}
-        <div className="p-6 lg:p-10 space-y-8 max-w-[1440px] mx-auto pb-40">
+        <div className="p-3 lg:p-10 space-y-3 lg:space-y-8 max-w-[1440px] mx-auto pb-24 lg:pb-40">
           {/* Header Actions / Identity Card */}
-          <div className="glass-card rounded-[2rem] p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 border-white/5 relative overflow-hidden">
+          <div className="glass-card rounded-2xl lg:rounded-[2rem] p-4 sm:p-5 lg:p-8 flex flex-col md:flex-row md:items-center justify-between gap-3 lg:gap-6 border-white/5 relative overflow-hidden">
             <div className="absolute top-0 left-0 p-8 opacity-20">
               <div className="w-32 h-32 bg-primary rounded-full blur-3xl"></div>
             </div>
-            <div className="flex items-center gap-5 relative z-10">
-              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-2xl sm:text-3xl shadow-lg shadow-indigo-500/30">
+            <div className="flex items-center gap-3 lg:gap-5 relative z-10">
+              <div className="h-12 w-12 sm:h-14 sm:w-14 lg:h-20 lg:w-20 rounded-xl sm:rounded-2xl lg:rounded-[2rem] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-lg sm:text-xl lg:text-3xl shadow-lg shadow-indigo-500/30">
                 {student.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none mb-2">{student.name}</h2>
-                <p className="text-sm text-slate-300 font-bold flex gap-2">
-                  <span className="px-2.5 py-1 rounded-md bg-white/10 border border-white/5">Fase {student.phase}</span>
-                  <span className="px-2.5 py-1 rounded-md bg-white/10 border border-white/5">Kelas {student.group}</span>
+                <h2 className="text-lg sm:text-xl lg:text-3xl font-black text-white tracking-tight leading-none mb-1 lg:mb-2">{student.name}</h2>
+                <p className="text-xs lg:text-sm text-slate-300 font-bold flex gap-2">
+                  <span className="px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-md bg-white/10 border border-white/5 text-[10px] lg:text-sm">Fase {student.phase}</span>
+                  <span className="px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-md bg-white/10 border border-white/5 text-[10px] lg:text-sm">Kelas {student.group}</span>
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-3 relative z-10">
-              <Link to="/students" className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold transition-all backdrop-blur-md border border-white/10">
+            <div className="flex flex-wrap gap-2 lg:gap-3 relative z-10">
+              <Link to="/students" className="flex items-center justify-center gap-1.5 px-3 lg:px-5 py-2 lg:py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs lg:text-base font-bold transition-all backdrop-blur-md border border-white/10">
                 <span className="material-symbols-outlined text-[18px]" data-icon="arrow_back">arrow_back</span>
                 Kembali
               </Link>
-              <Link to={`/print/${id}`} className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white text-indigo-950 font-black hover:bg-indigo-50 transition-all active:scale-95 shadow-lg">
+              <Link to={`/print/${id}`} className="flex items-center justify-center gap-1.5 px-3 lg:px-5 py-2 lg:py-3 rounded-xl bg-white text-indigo-950 text-xs lg:text-base font-black hover:bg-indigo-50 transition-all active:scale-95 shadow-lg">
                 <span className="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
                 Preview Cetak
               </Link>
@@ -348,14 +348,14 @@ function ReportEditor() {
                 <button 
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-shrink-0 flex items-center gap-2.5 px-6 py-4 rounded-2xl transition-all font-bold snap-center shadow-lg ${
+                  className={`flex-shrink-0 flex items-center gap-1.5 lg:gap-2.5 px-3 lg:px-6 py-2 lg:py-4 rounded-xl lg:rounded-2xl transition-all text-xs lg:text-base font-bold snap-center shadow-lg ${
                     isActive 
                       ? "bg-gradient-to-r from-secondary to-primary text-white scale-105" 
                       : "bg-black/20 text-slate-400 hover:bg-white/10 hover:text-white border border-white/5"
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[20px]" style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>{tab.icon}</span>
-                  <span className="text-[15px]">{tab.id}</span>
+                  <span className="material-symbols-outlined text-[16px] lg:text-[20px]" style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>{tab.icon}</span>
+                  <span className="text-[11px] lg:text-[15px]">{tab.id}</span>
                 </button>
               );
             })}
@@ -363,16 +363,16 @@ function ReportEditor() {
 
           {/* Render Content Based on Active Tab */}
           {activeTab !== 'Kehadiran & Catatan' && (
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-10 mt-4">
-              <div className="xl:col-span-7 space-y-6">
-                <div className="glass-card rounded-[2rem] border-white/5 overflow-hidden">
-                  <div className="bg-white/5 px-8 py-5 flex justify-between items-center border-b border-white/10">
-                    <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 lg:gap-8 xl:gap-10 mt-2 lg:mt-4">
+              <div className="xl:col-span-7 space-y-3 lg:space-y-6">
+                <div className="glass-card rounded-2xl lg:rounded-[2rem] border-white/5 overflow-hidden">
+                  <div className="bg-white/5 px-4 lg:px-8 py-3 lg:py-5 flex justify-between items-center border-b border-white/10">
+                    <h3 className="text-sm lg:text-xl font-black text-white tracking-tight flex items-center gap-2">
                       <span className="material-symbols-outlined text-secondary">edit_document</span>
                       {activeTab}
                     </h3>
                   </div>
-                  <div className="p-6 sm:p-8 space-y-6">
+                  <div className="p-4 sm:p-5 lg:p-8 space-y-4 lg:space-y-6">
                     {/* Placeholder Chip Bar */}
                     <div>
                       <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
@@ -463,7 +463,7 @@ function ReportEditor() {
                       </div>
                       <textarea 
                         ref={textareaRef}
-                        className="w-full bg-black/30 border border-white/10 rounded-[1.5rem] p-6 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-secondary focus:bg-black/40 transition-all resize-none min-h-[250px] shadow-inner text-base leading-relaxed" 
+                        className="w-full bg-black/30 border border-white/10 rounded-xl lg:rounded-[1.5rem] p-4 lg:p-6 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-secondary focus:bg-black/40 transition-all resize-none min-h-[160px] lg:min-h-[250px] shadow-inner text-sm lg:text-base leading-relaxed" 
                         placeholder="Tuliskan deskripsi capaian pembelajaran anak secara detail dan suportif. Gunakan chip di atas untuk menyisipkan placeholder [nama] secara otomatis..." 
                         value={localReport[tabToDbField[activeTab]] || ''}
                         onChange={handleContentChange}
@@ -618,12 +618,12 @@ function ReportEditor() {
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-10 mt-4">
               <div className="xl:col-span-8 space-y-8">
                 {/* Attendance Section */}
-                <section className="glass-card rounded-[2rem] p-8 border-white/5">
+                <section className="glass-card rounded-2xl lg:rounded-[2rem] p-4 lg:p-8 border-white/5">
                   <div className="flex items-center gap-3 mb-8 border-b border-white/10 pb-4">
                     <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-secondary">
                       <span className="material-symbols-outlined" data-icon="event_available">event_available</span>
                     </div>
-                    <h3 className="text-xl font-black text-white tracking-tight">Data Kehadiran</h3>
+                    <h3 className="text-base lg:text-xl font-black text-white tracking-tight">Data Kehadiran</h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <AttendanceInput label="Sakit" field="sick" colorClass="bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/20" />
@@ -633,15 +633,15 @@ function ReportEditor() {
                 </section>
 
                 {/* Parent Reflection Section */}
-                <section className="glass-card rounded-[2rem] p-8 border-white/5">
+                <section className="glass-card rounded-2xl lg:rounded-[2rem] p-4 lg:p-8 border-white/5">
                   <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
                     <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-primary">
                       <span className="material-symbols-outlined" data-icon="family_restroom">family_restroom</span>
                     </div>
-                    <h3 className="text-xl font-black text-white tracking-tight">Catatan Orang Tua</h3>
+                    <h3 className="text-base lg:text-xl font-black text-white tracking-tight">Catatan Orang Tua</h3>
                   </div>
                   <textarea 
-                    className="w-full bg-black/30 border border-white/10 rounded-[1.5rem] p-6 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-black/40 transition-all resize-none min-h-[200px] shadow-inner text-base leading-relaxed" 
+                    className="w-full bg-black/30 border border-white/10 rounded-xl lg:rounded-[1.5rem] p-4 lg:p-6 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-black/40 transition-all resize-none min-h-[120px] lg:min-h-[200px] shadow-inner text-sm lg:text-base leading-relaxed" 
                     placeholder="Tuliskan refleksi, harapan, atau tanggapan orang tua di sini..."
                     value={localReport.parentReflection || ''}
                     onChange={handleReflectionChange}
@@ -691,7 +691,7 @@ function ReportEditor() {
           </div>
 
           <button 
-            className="flex items-center gap-3 px-8 py-4 rounded-full bg-white text-indigo-950 font-black shadow-[0_10px_40px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all"
+            className="flex items-center gap-2 lg:gap-3 px-5 lg:px-8 py-3 lg:py-4 rounded-full bg-white text-indigo-950 font-black text-sm lg:text-base shadow-[0_10px_40px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all"
             onClick={() => {
               const currentIndex = tabs.findIndex(t => t.id === activeTab);
               if (currentIndex < tabs.length - 1) setActiveTab(tabs[currentIndex + 1].id);

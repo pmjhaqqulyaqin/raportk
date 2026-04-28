@@ -106,7 +106,7 @@ function TemplateManager() {
   }
 
   return (
-    <div className="font-sans overflow-x-hidden min-h-screen text-white pb-32">
+    <div className="font-sans overflow-x-hidden min-h-screen text-white pb-20">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col h-screen p-4 gap-4 fixed left-0 top-0 w-72 border-r border-white/10 glass-panel z-50">
         <div className="flex flex-col gap-1 px-4 py-8">
@@ -146,30 +146,30 @@ function TemplateManager() {
 
       {/* Main Content */}
       <main className="lg:ml-72 min-h-screen">
-        <header className="sticky top-0 z-40 flex h-20 w-full items-center justify-between px-6 lg:px-10 glass-panel border-b border-white/5">
-          <h2 className="text-xl font-bold text-white tracking-tight hidden sm:block">Template Narasi</h2>
+        <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-between px-4 lg:px-10 glass-panel border-b border-white/5">
+          <h2 className="text-base lg:text-xl font-bold text-white tracking-tight hidden sm:block">Template Narasi</h2>
           <button
             onClick={openAddModal}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-secondary to-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
+            className="flex items-center gap-1.5 px-3 lg:px-5 py-2 lg:py-2.5 bg-gradient-to-r from-secondary to-primary text-white rounded-xl text-xs lg:text-sm font-bold shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
             Buat Template
           </button>
         </header>
 
-        <div className="p-6 lg:p-10 space-y-8 max-w-[1200px] mx-auto">
+        <div className="p-3 lg:p-10 space-y-3 lg:space-y-8 max-w-[1200px] mx-auto">
           {/* Hero Card */}
-          <div className="glass-card rounded-[2rem] p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 border-white/5 relative overflow-hidden">
+          <div className="glass-card rounded-2xl lg:rounded-[2rem] p-4 sm:p-5 lg:p-8 flex flex-col md:flex-row md:items-center justify-between gap-3 lg:gap-6 border-white/5 relative overflow-hidden">
             <div className="absolute top-0 left-0 p-8 opacity-20">
               <div className="w-32 h-32 bg-secondary rounded-full blur-3xl"></div>
             </div>
-            <div className="flex items-center gap-5 relative z-10">
-              <div className="h-16 w-16 rounded-[1.5rem] bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white shadow-lg">
-                <span className="material-symbols-outlined text-3xl">description</span>
+            <div className="flex items-center gap-3 lg:gap-5 relative z-10">
+              <div className="h-10 w-10 lg:h-16 lg:w-16 rounded-xl lg:rounded-[1.5rem] bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-white shadow-lg">
+                <span className="material-symbols-outlined text-xl lg:text-3xl">description</span>
               </div>
               <div>
-                <h3 className="text-2xl font-black text-white tracking-tight">Bank Template Narasi</h3>
-                <p className="text-slate-400 text-sm mt-1">{totalCount} template tersimpan · Kurikulum Merdeka</p>
+                <h3 className="text-base lg:text-2xl font-black text-white tracking-tight">Bank Template Narasi</h3>
+                <p className="text-slate-400 text-xs lg:text-sm mt-0.5">{totalCount} template tersimpan · Kurikulum Merdeka</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2 relative z-10">
@@ -198,14 +198,14 @@ function TemplateManager() {
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
-                  className={`flex-shrink-0 flex items-center gap-2.5 px-5 py-3.5 rounded-2xl transition-all font-bold snap-center ${
+                  className={`flex-shrink-0 flex items-center gap-1.5 lg:gap-2.5 px-3 lg:px-5 py-2 lg:py-3.5 rounded-xl lg:rounded-2xl transition-all text-xs lg:text-base font-bold snap-center ${
                     isActive
                       ? `bg-gradient-to-r ${cat.color} text-white scale-105 shadow-lg`
                       : 'bg-black/20 text-slate-400 hover:bg-white/10 hover:text-white border border-white/5'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[20px]">{cat.icon}</span>
-                  <span className="text-[14px] hidden sm:inline">{cat.id}</span>
+                  <span className="material-symbols-outlined text-[16px] lg:text-[20px]">{cat.icon}</span>
+                  <span className="text-[11px] lg:text-[14px] hidden sm:inline">{cat.id}</span>
                   <span className={`text-[11px] px-2 py-0.5 rounded-full ${isActive ? 'bg-white/20' : 'bg-white/5'}`}>{count}</span>
                 </button>
               );
@@ -214,7 +214,7 @@ function TemplateManager() {
 
           {/* Template Cards */}
           {filteredTemplates.length === 0 ? (
-            <div className="glass-card rounded-[2rem] p-12 text-center border-white/5">
+            <div className="glass-card rounded-2xl lg:rounded-[2rem] p-6 lg:p-12 text-center border-white/5">
               <span className="material-symbols-outlined text-5xl text-slate-500 mb-4">inbox</span>
               <h4 className="text-lg font-bold text-slate-300 mb-2">Belum ada template</h4>
               <p className="text-sm text-slate-500 mb-6">Buat template narasi baru untuk kategori ini.</p>
@@ -226,7 +226,7 @@ function TemplateManager() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredTemplates.map(t => (
-                <div key={t.id} className="glass-card rounded-[1.5rem] p-6 border-white/5 hover:border-white/15 transition-all group relative">
+                <div key={t.id} className="glass-card rounded-2xl lg:rounded-[1.5rem] p-4 lg:p-6 border-white/5 hover:border-white/15 transition-all group relative">
                   {/* Header */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2.5">
