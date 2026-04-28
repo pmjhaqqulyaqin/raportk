@@ -98,9 +98,6 @@ function ReportEditor() {
   // Available placeholder chips
   const placeholderChips = [
     { label: '[nama]', value: '[nama]', icon: 'person' },
-    { label: '[sekolah]', value: '[sekolah]', icon: 'school' },
-    { label: '[kelas]', value: '[kelas]', icon: 'groups' },
-    { label: '[semester]', value: '[semester]', icon: 'calendar_month' },
   ];
 
   const tabs = [
@@ -384,20 +381,14 @@ function ReportEditor() {
                     {/* Template Narasi Chips */}
                     {(() => {
                       const catTemplates = (templates || []).filter(t => t.category === activeTab);
-                      const smartFiltered = catTemplates.filter(t => {
-                        const phaseOk = !t.phase || (student && t.phase === student.phase);
-                        const groupOk = !t.groupName || (student && t.groupName === student.group);
-                        const semOk = !t.semester || (schoolInfo && t.semester === schoolInfo.semester);
-                        return phaseOk && groupOk && semOk;
-                      });
-                      return smartFiltered.length > 0 ? (
+                      return catTemplates.length > 0 ? (
                       <div>
                         <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
                           <span className="material-symbols-outlined text-[14px] align-middle mr-1">description</span>
                           Bank Template Narasi (Tap untuk tambahkan)
                         </label>
                         <div className="flex flex-wrap gap-2">
-                          {smartFiltered.map(t => (
+                          {catTemplates.map(t => (
                             <button 
                               key={t.id} 
                               onClick={() => applyTemplate(t.text)}

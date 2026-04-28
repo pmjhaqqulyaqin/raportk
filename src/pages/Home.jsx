@@ -60,9 +60,13 @@ function Home() {
           </Link>
         </nav>
         <div className="mt-auto p-4 flex items-center gap-4 glass-card rounded-3xl">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white font-black text-lg shadow-inner">
-            {session?.user?.name?.charAt(0).toUpperCase() || 'G'}
-          </div>
+          {session?.user?.image ? (
+            <img src={session.user.image} alt="Profile" className="w-12 h-12 rounded-full object-cover shadow-inner" />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white font-black text-lg shadow-inner">
+              {session?.user?.name?.charAt(0).toUpperCase() || 'G'}
+            </div>
+          )}
           <div className="flex flex-col">
             <span className="text-sm font-bold text-white tracking-tight">{session?.user?.name || 'Guru'}</span>
             <span className="text-xs text-slate-400">Guru Kelas</span>
@@ -89,8 +93,12 @@ function Home() {
               <span className="material-symbols-outlined text-lg">notifications</span>
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full"></span>
             </button>
-            <button onClick={() => setShowProfile(!showProfile)} className="w-8 h-8 rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white font-black text-xs shadow-inner hover:scale-110 transition-all">
-              {session?.user?.name?.charAt(0).toUpperCase() || 'G'}
+            <button onClick={() => setShowProfile(!showProfile)} className="w-8 h-8 rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white font-black text-xs shadow-inner hover:scale-110 transition-all overflow-hidden">
+              {session?.user?.image ? (
+                <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                session?.user?.name?.charAt(0).toUpperCase() || 'G'
+              )}
             </button>
           </div>
 
@@ -121,9 +129,13 @@ function Home() {
               <div className="fixed inset-0 z-[90]" onClick={() => setShowProfile(false)}></div>
               <div className="fixed top-14 right-4 w-56 bg-[#151a30] rounded-xl p-3 border border-white/10 shadow-2xl z-[91] space-y-1">
                 <div className="flex items-center gap-2.5 pb-2 border-b border-white/10">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white font-black text-xs">
-                    {session?.user?.name?.charAt(0).toUpperCase() || 'G'}
-                  </div>
+                  {session?.user?.image ? (
+                    <img src={session.user.image} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-secondary to-primary flex items-center justify-center text-white font-black text-xs">
+                      {session?.user?.name?.charAt(0).toUpperCase() || 'G'}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-white truncate">{session?.user?.name || 'Guru'}</p>
                     <p className="text-[9px] text-slate-400 truncate">{session?.user?.email || ''}</p>
@@ -324,11 +336,16 @@ function Home() {
               <button disabled={!profilePhoto} onClick={async () => {
                 if (!profilePhoto) return;
                 try {
-                  const formData = new FormData();
-                  formData.append('image', profilePhoto);
-                  await authClient.updateUser({ image: photoPreview });
-                  setShowUploadPhoto(false); setPhotoPreview(null); setProfilePhoto(null);
-                  window.location.reload();
+                  // Convert file to base64 data URL for persistence
+                  const reader = new FileReader();
+                  reader.onload = async (ev) => {
+                    try {
+                      await authClient.updateUser({ image: ev.target.result });
+                      setShowUploadPhoto(false); setPhotoPreview(null); setProfilePhoto(null);
+                      window.location.reload();
+                    } catch { alert('Gagal upload foto.'); }
+                  };
+                  reader.readAsDataURL(profilePhoto);
                 } catch { alert('Gagal upload foto.'); }
               }} className="flex-[2] py-2.5 bg-gradient-to-r from-secondary to-primary text-white rounded-lg text-xs font-bold active:scale-95 transition-all disabled:opacity-40">
                 Simpan Foto

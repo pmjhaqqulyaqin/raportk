@@ -142,13 +142,6 @@ function TemplateManager() {
       <main className="lg:ml-72 min-h-screen">
         <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-between px-4 lg:px-10 glass-panel border-b border-white/5">
           <h2 className="text-base lg:text-xl font-bold text-white tracking-tight hidden sm:block">Template Narasi</h2>
-          <button
-            onClick={openAddModal}
-            className="flex items-center gap-1.5 px-3 lg:px-5 py-2 lg:py-2.5 bg-gradient-to-r from-secondary to-primary text-white rounded-xl text-xs lg:text-sm font-bold shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
-          >
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            Buat Template
-          </button>
         </header>
 
         <div className="p-3 lg:p-10 space-y-3 lg:space-y-8 max-w-[1200px] mx-auto">
@@ -230,7 +223,7 @@ function TemplateManager() {
                       <h4 className="text-[15px] font-black text-white">{t.name}</h4>
                     </div>
                     {/* Actions */}
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1">
                       <button onClick={() => handleDuplicate(t)} className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-400 hover:text-white transition-all" title="Duplikasi">
                         <span className="material-symbols-outlined text-[16px]">content_copy</span>
                       </button>
@@ -345,7 +338,7 @@ function TemplateManager() {
                   className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner resize-none min-h-[100px] leading-relaxed"
                 />
                 <div className="flex flex-wrap gap-1">
-                  {['[nama]', '[sekolah]', '[kelas]', '[semester]'].map(ph => (
+                  {['[nama]'].map(ph => (
                     <button
                       key={ph}
                       onClick={() => setFormData(prev => ({ ...prev, text: prev.text + ph }))}
@@ -373,6 +366,14 @@ function TemplateManager() {
           </div>
         </div>
       )}
+
+      {/* FAB - Buat Template */}
+      <button
+        onClick={openAddModal}
+        className="fixed bottom-20 lg:bottom-10 right-4 lg:right-10 w-14 h-14 bg-gradient-to-r from-secondary to-primary rounded-full shadow-lg shadow-primary/30 flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all z-50 border border-white/20"
+      >
+        <span className="material-symbols-outlined text-2xl">add</span>
+      </button>
     </div>
   );
 }

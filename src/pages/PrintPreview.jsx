@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useStudents, useSchoolInfo, useReport, useAllReports } from '../hooks/queries';
 import { replacePlaceholders } from '../lib/templateEngine';
+import * as XLSX from 'xlsx';
 
 function PrintPreview() {
   const { id } = useParams();
@@ -32,6 +33,87 @@ function PrintPreview() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleExportLeger = () => {
+    if (!students.length) return alert('Belum ada data siswa.');
+
+    const headerRows = [
+      ['LEGER PENILAIAN KURIKULUM MERDEKA'],
+      [schoolInfo.schoolName || 'TK/PAUD'],
+      [`Tahun Ajaran: ${schoolInfo.academicYear || '-'} | Semester: ${schoolInfo.semester || '-'}`],
+      [],
+    ];
+
+    const tableHeader = [
+      'No',
+      'Nama Siswa',
+      'Kelompok',
+      'Fase',
+      'L/P',
+      'NISN',
+      'Nilai Agama & Budi Pekerti',
+      'Jati Diri',
+      'Dasar Literasi & STEAM',
+      'Projek / Kokurikuler',
+      'Sakit',
+      'Izin',
+      'Tanpa Keterangan',
+      'Catatan Orang Tua',
+    ];
+
+    const dataRows = students.map((s, idx) => {
+      const report = allReports.find(r => r.studentId === s.id) || {};
+      const ctx = { student: s, schoolInfo };
+      return [
+        idx + 1,
+        s.name,
+        `Kelas ${s.group}`,
+        s.phase,
+        s.gender || '-',
+        s.nisn || '-',
+        replacePlaceholders(report.agama, ctx) || '-',
+        replacePlaceholders(report.jatiDiri, ctx) || '-',
+        replacePlaceholders(report.literasi, ctx) || '-',
+        replacePlaceholders(report.p5, ctx) || '-',
+        report.attendanceSick || 0,
+        report.attendancePermission || 0,
+        report.attendanceUnexcused || 0,
+        replacePlaceholders(report.parentReflection, ctx) || '-',
+      ];
+    });
+
+    const wsData = [...headerRows, tableHeader, ...dataRows];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Style column widths
+    ws['!cols'] = [
+      { wch: 4 },   // No
+      { wch: 25 },  // Nama
+      { wch: 12 },  // Kelompok
+      { wch: 10 },  // Fase
+      { wch: 5 },   // L/P
+      { wch: 14 },  // NISN
+      { wch: 40 },  // Agama
+      { wch: 40 },  // Jati Diri
+      { wch: 40 },  // Literasi
+      { wch: 40 },  // Projek
+      { wch: 8 },   // Sakit
+      { wch: 8 },   // Izin
+      { wch: 8 },   // Tanpa Keterangan
+      { wch: 40 },  // Catatan
+    ];
+
+    // Merge header cells
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 13 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 13 } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 13 } },
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leger');
+    XLSX.writeFile(wb, `Leger_${schoolInfo.schoolName || 'PAUD'}_${schoolInfo.academicYear || ''}_${schoolInfo.semester || ''}.xlsx`);
   };
 
   if (isStudentsLoading || isSchoolLoading || (isBatch && isAllReportsLoading)) {
@@ -85,10 +167,16 @@ function PrintPreview() {
             <div className="glass-card rounded-2xl lg:rounded-[2rem] p-4 lg:p-8 border-primary/20 text-center mb-3 lg:mb-8 flex flex-col items-center">
               <h3 className="text-lg lg:text-2xl font-black text-white mb-1 lg:mb-2">Cetak Rapor Kurikulum Merdeka</h3>
               <p className="text-slate-400 text-xs lg:text-sm mb-3 lg:mb-6">Pilih siswa dari daftar di bawah ini atau cetak seluruh kelas sekaligus.</p>
-              <Link to="/print/batch" className="flex items-center gap-2 px-5 lg:px-8 py-3 lg:py-4 text-white bg-gradient-to-r from-secondary to-primary hover:from-primary hover:to-secondary rounded-xl lg:rounded-2xl font-bold shadow-lg shadow-primary/30 transition-all active:scale-95 text-sm lg:text-lg">
-                <span className="material-symbols-outlined text-[24px]">print_connect</span>
-                Cetak Semua (Batch Print)
-              </Link>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <Link to="/print/batch" className="flex items-center gap-2 px-5 lg:px-8 py-3 lg:py-4 text-white bg-gradient-to-r from-secondary to-primary hover:from-primary hover:to-secondary rounded-xl lg:rounded-2xl font-bold shadow-lg shadow-primary/30 transition-all active:scale-95 text-sm lg:text-lg">
+                  <span className="material-symbols-outlined text-[24px]">print_connect</span>
+                  Cetak Semua (Batch Print)
+                </Link>
+                <button onClick={handleExportLeger} className="flex items-center gap-2 px-5 lg:px-8 py-3 lg:py-4 text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-teal-600 hover:to-emerald-500 rounded-xl lg:rounded-2xl font-bold shadow-lg shadow-emerald-500/30 transition-all active:scale-95 text-sm lg:text-lg">
+                  <span className="material-symbols-outlined text-[24px]">table_chart</span>
+                  Cetak Leger (Excel)
+                </button>
+              </div>
             </div>
             
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 lg:gap-6">

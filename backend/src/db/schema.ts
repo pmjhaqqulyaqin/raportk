@@ -53,6 +53,7 @@ export const schoolInfo = pgTable("school_info", {
     id: uuid("id").defaultRandom().primaryKey(),
     userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
     schoolName: text("school_name"),
+    npsn: text("npsn"),
     principal: text("principal"),
     principalNip: text("principal_nip"),
     teacher: text("teacher"),

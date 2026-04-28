@@ -39,9 +39,26 @@ sleep 10
 # 4. Run database migrations
 echo ""
 echo "📊 [4/5] Running database migrations..."
-docker exec raportk-app npx drizzle-kit push --config=drizzle.config.ts 2>&1 || {
-    echo "    ⚠ Migration skipped or failed (may be first run)"
-}
+
+# Try drizzle-kit push first
+if docker exec raportk-app npx drizzle-kit push --config=drizzle.config.ts 2>&1; then
+    echo "    ✓ Drizzle migrations applied"
+else
+    echo "    ⚠ Drizzle-kit unavailable, applying SQL migrations directly..."
+    
+    # Get DB credentials from the .env.production file
+    DB_USER=$(grep -E '^POSTGRES_USER=' "$APP_DIR/.env.production" | cut -d'=' -f2)
+    DB_NAME=$(grep -E '^POSTGRES_DB=' "$APP_DIR/.env.production" | cut -d'=' -f2)
+    DB_USER=${DB_USER:-raportk_user}
+    DB_NAME=${DB_NAME:-raportk}
+
+    # SQL migrations — add new columns/tables here as needed
+    docker exec raportk-db psql -U "$DB_USER" -d "$DB_NAME" -c "
+        -- v1.1: Add NPSN column to school_info
+        ALTER TABLE school_info ADD COLUMN IF NOT EXISTS npsn TEXT;
+    " 2>&1 && echo "    ✓ SQL migrations applied" || echo "    ⚠ SQL migration warning (tables may not exist yet on first run)"
+fi
+
 echo "    ✓ Migrations complete"
 
 # 5. Health check
