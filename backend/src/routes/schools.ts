@@ -253,4 +253,262 @@ router.delete('/leave', async (req, res) => {
     }
 });
 
+// =============================================
+// PHASE 2: DATA SHARING
+// =============================================
+
+// Helper: verify school membership and get school
+async function verifyMembership(userId: string, npsn: string) {
+    const school = await db.select().from(schools).where(eq(schools.npsn, npsn));
+    if (school.length === 0) return null;
+    const membership = await db.select().from(schoolMembers)
+        .where(and(eq(schoolMembers.schoolId, school[0].id), eq(schoolMembers.userId, userId)));
+    if (membership.length === 0) return null;
+    return { school: school[0], membership: membership[0] };
+}
+
+// GET /api/schools/:npsn/students — All students across all teachers in the school
+router.get('/:npsn/students', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn } = req.params;
+
+    try {
+        const ctx = await verifyMembership(userId, npsn);
+        if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+        // Get all members
+        const members = await db.select({
+            userId: schoolMembers.userId,
+            userName: user.name,
+            classGroup: schoolMembers.classGroup,
+        })
+        .from(schoolMembers)
+        .innerJoin(user, eq(schoolMembers.userId, user.id))
+        .where(eq(schoolMembers.schoolId, ctx.school.id));
+
+        // Get students per member
+        const allStudents = await Promise.all(members.map(async (member) => {
+            const studentList = await db.select().from(students)
+                .where(eq(students.userId, member.userId));
+            return studentList.map(s => ({
+                ...s,
+                teacherName: member.userName,
+                teacherId: member.userId,
+                teacherClassGroup: member.classGroup,
+            }));
+        }));
+
+        res.json(allStudents.flat());
+    } catch (error) {
+        console.error('School students error:', error);
+        res.status(500).json({ error: 'Gagal memuat data siswa sekolah' });
+    }
+});
+
+// POST /api/schools/:npsn/import-students — Copy students from another teacher
+router.post('/:npsn/import-students', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn } = req.params;
+    const { studentIds, fromUserId } = req.body;
+
+    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+        return res.status(400).json({ error: 'Pilih minimal 1 siswa untuk diimpor' });
+    }
+
+    try {
+        const ctx = await verifyMembership(userId, npsn);
+        if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+        // Verify source teacher is in the same school
+        const sourceMember = await db.select().from(schoolMembers)
+            .where(and(eq(schoolMembers.schoolId, ctx.school.id), eq(schoolMembers.userId, fromUserId)));
+        if (sourceMember.length === 0) return res.status(400).json({ error: 'Guru sumber bukan anggota sekolah ini' });
+
+        // Get source students
+        const sourceStudents = await db.select().from(students)
+            .where(eq(students.userId, fromUserId));
+        const toImport = sourceStudents.filter(s => studentIds.includes(s.id));
+
+        if (toImport.length === 0) return res.status(400).json({ error: 'Tidak ada siswa yang valid untuk diimpor' });
+
+        // Check for duplicates in current user's students by NISN or name
+        const myStudents = await db.select().from(students).where(eq(students.userId, userId));
+        const myNisns = new Set(myStudents.filter(s => s.nisn).map(s => s.nisn));
+        const myNames = new Set(myStudents.map(s => s.name.toLowerCase().trim()));
+
+        let skipped = 0;
+        const newStudents = toImport.filter(s => {
+            if (s.nisn && myNisns.has(s.nisn)) { skipped++; return false; }
+            if (myNames.has(s.name.toLowerCase().trim())) { skipped++; return false; }
+            return true;
+        }).map(s => ({
+            userId,
+            name: s.name,
+            height: s.height,
+            weight: s.weight,
+            phase: s.phase,
+            group: s.group,
+            gender: s.gender,
+            nisn: s.nisn,
+            nik: s.nik,
+            birthPlace: s.birthPlace,
+            birthDate: s.birthDate,
+        }));
+
+        let imported = 0;
+        if (newStudents.length > 0) {
+            await db.insert(students).values(newStudents);
+            imported = newStudents.length;
+        }
+
+        res.json({
+            success: true,
+            imported,
+            skipped,
+            message: `${imported} siswa berhasil diimpor${skipped > 0 ? `, ${skipped} dilewati (duplikat)` : ''}.`,
+        });
+    } catch (error) {
+        console.error('Import students error:', error);
+        res.status(500).json({ error: 'Gagal mengimpor siswa' });
+    }
+});
+
+// POST /api/schools/:npsn/transfer-student — Transfer student ownership to another teacher
+router.post('/:npsn/transfer-student', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn } = req.params;
+    const { studentId, toUserId } = req.body;
+
+    try {
+        const ctx = await verifyMembership(userId, npsn);
+        if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+        // Verify target teacher is in the same school
+        const targetMember = await db.select().from(schoolMembers)
+            .where(and(eq(schoolMembers.schoolId, ctx.school.id), eq(schoolMembers.userId, toUserId)));
+        if (targetMember.length === 0) return res.status(400).json({ error: 'Guru tujuan bukan anggota sekolah ini' });
+
+        // Verify student belongs to current user
+        const student = await db.select().from(students)
+            .where(and(eq(students.id, studentId), eq(students.userId, userId)));
+        if (student.length === 0) return res.status(404).json({ error: 'Siswa tidak ditemukan atau bukan milik Anda' });
+
+        // Transfer: change userId
+        await db.update(students).set({
+            userId: toUserId,
+            updatedAt: new Date(),
+        }).where(eq(students.id, studentId));
+
+        // Also transfer any reports
+        await db.update(reports).set({
+            userId: toUserId,
+            updatedAt: new Date(),
+        }).where(and(eq(reports.studentId, studentId), eq(reports.userId, userId)));
+
+        res.json({
+            success: true,
+            message: `Siswa "${student[0].name}" berhasil ditransfer.`,
+        });
+    } catch (error) {
+        console.error('Transfer error:', error);
+        res.status(500).json({ error: 'Gagal mentransfer siswa' });
+    }
+});
+
+// GET /api/schools/:npsn/duplicates — Detect duplicate students across teachers
+router.get('/:npsn/duplicates', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn } = req.params;
+
+    try {
+        const ctx = await verifyMembership(userId, npsn);
+        if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+        // Get all members
+        const members = await db.select({
+            userId: schoolMembers.userId,
+            userName: user.name,
+        })
+        .from(schoolMembers)
+        .innerJoin(user, eq(schoolMembers.userId, user.id))
+        .where(eq(schoolMembers.schoolId, ctx.school.id));
+
+        // Get ALL students
+        const allStudents: any[] = [];
+        for (const member of members) {
+            const studentList = await db.select().from(students)
+                .where(eq(students.userId, member.userId));
+            studentList.forEach(s => {
+                allStudents.push({ ...s, teacherName: member.userName, teacherId: member.userId });
+            });
+        }
+
+        // Detect duplicates by NISN
+        const nisnMap = new Map<string, any[]>();
+        allStudents.forEach(s => {
+            if (s.nisn) {
+                const key = s.nisn.trim();
+                if (!nisnMap.has(key)) nisnMap.set(key, []);
+                nisnMap.get(key)!.push(s);
+            }
+        });
+
+        // Detect duplicates by exact name (case-insensitive)
+        const nameMap = new Map<string, any[]>();
+        allStudents.forEach(s => {
+            const key = s.name.toLowerCase().trim();
+            if (!nameMap.has(key)) nameMap.set(key, []);
+            nameMap.get(key)!.push(s);
+        });
+
+        const duplicates: any[] = [];
+        const seen = new Set<string>();
+
+        // NISN duplicates (strongest signal)
+        nisnMap.forEach((group, nisn) => {
+            if (group.length > 1) {
+                const key = `nisn:${nisn}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    duplicates.push({
+                        type: 'NISN',
+                        matchKey: nisn,
+                        students: group.map(s => ({
+                            id: s.id, name: s.name, nisn: s.nisn, group: s.group,
+                            teacherName: s.teacherName, teacherId: s.teacherId,
+                        })),
+                    });
+                }
+            }
+        });
+
+        // Name duplicates (weaker signal, only if across different teachers)
+        nameMap.forEach((group, name) => {
+            if (group.length > 1) {
+                const teacherIds = new Set(group.map((s: any) => s.teacherId));
+                if (teacherIds.size > 1) {  // Only flag if different teachers have same name
+                    const key = `name:${name}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        duplicates.push({
+                            type: 'Nama',
+                            matchKey: name,
+                            students: group.map(s => ({
+                                id: s.id, name: s.name, nisn: s.nisn, group: s.group,
+                                teacherName: s.teacherName, teacherId: s.teacherId,
+                            })),
+                        });
+                    }
+                }
+            }
+        });
+
+        res.json({ duplicates, totalStudents: allStudents.length });
+    } catch (error) {
+        console.error('Duplicates error:', error);
+        res.status(500).json({ error: 'Gagal mendeteksi duplikat' });
+    }
+});
+
 export default router;
+

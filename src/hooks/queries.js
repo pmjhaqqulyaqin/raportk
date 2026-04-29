@@ -291,3 +291,56 @@ export const useSchoolProgress = (npsn) => {
     enabled: !!npsn,
   });
 };
+
+// --- PHASE 2: DATA SHARING ---
+export const useSchoolStudents = (npsn) => {
+  return useQuery({
+    queryKey: ['schoolStudents', npsn],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/schools/${npsn}/students`);
+      return data;
+    },
+    enabled: !!npsn,
+  });
+};
+
+export const useImportFromColleague = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ npsn, studentIds, fromUserId }) => {
+      const { data } = await apiClient.post(`/schools/${npsn}/import-students`, { studentIds, fromUserId });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+      queryClient.invalidateQueries({ queryKey: ['schoolStudents'] });
+      queryClient.invalidateQueries({ queryKey: ['schoolProgress'] });
+    },
+  });
+};
+
+export const useTransferStudent = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ npsn, studentId, toUserId }) => {
+      const { data } = await apiClient.post(`/schools/${npsn}/transfer-student`, { studentId, toUserId });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+      queryClient.invalidateQueries({ queryKey: ['schoolStudents'] });
+      queryClient.invalidateQueries({ queryKey: ['schoolProgress'] });
+    },
+  });
+};
+
+export const useSchoolDuplicates = (npsn) => {
+  return useQuery({
+    queryKey: ['schoolDuplicates', npsn],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/schools/${npsn}/duplicates`);
+      return data;
+    },
+    enabled: !!npsn,
+  });
+};
