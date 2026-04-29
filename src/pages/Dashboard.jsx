@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { useStudents, useCreateStudent, useDeleteStudent, useImportDapodik } from '../hooks/queries';
+import { useStudents, useCreateStudent, useDeleteStudent, useImportExcel } from '../hooks/queries';
 
 function Dashboard() {
   const [activeTab, setActiveTab] = useState('siswa');
@@ -22,20 +22,20 @@ function Dashboard() {
   const { data: studentsData, isLoading } = useStudents();
   const { mutate: addStudentMutate } = useCreateStudent();
   const { mutate: deleteStudentMutate } = useDeleteStudent();
-  const { mutate: importDapodikMutate, isPending: isImporting } = useImportDapodik();
+  const { mutate: importExcelMutate, isPending: isImporting } = useImportExcel();
 
   const handleImport = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
     if(window.confirm(`Yakin ingin mengimpor data dari ${file.name}?`)) {
-      importDapodikMutate(file, {
+      importExcelMutate(file, {
         onSuccess: (data) => {
           alert(`Berhasil mengimpor ${data.count} murid!`);
           e.target.value = null; // reset input
         },
         onError: () => {
-          alert('Gagal mengimpor data. Pastikan format CSV sesuai Dapodik.');
+          alert('Gagal mengimpor data. Pastikan format Excel sesuai template.');
           e.target.value = null; // reset input
         }
       });
@@ -168,7 +168,7 @@ function Dashboard() {
                     className="flex items-center gap-2 px-5 py-3.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-full transition-all text-sm font-bold shadow-inner"
                   >
                     <span className="material-symbols-outlined text-lg">{isImporting ? 'sync' : 'upload_file'}</span>
-                    {isImporting ? 'Mengimpor...' : 'Import Dapodik'}
+                    {isImporting ? 'Mengimpor...' : 'Import Excel'}
                   </button>
                   <div className="relative flex-1 md:w-64">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">

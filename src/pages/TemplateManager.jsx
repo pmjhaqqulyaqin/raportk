@@ -224,14 +224,11 @@ function TemplateManager() {
                     </div>
                     {/* Actions */}
                     <div className="flex items-center gap-1">
-                      <button onClick={() => handleDuplicate(t)} className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-400 hover:text-white transition-all" title="Duplikasi">
-                        <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                      <button onClick={() => openEditModal(t)} className="w-7 h-7 rounded-lg bg-white/5 hover:bg-primary/30 flex items-center justify-center text-slate-400 hover:text-primary transition-all" title="Edit">
+                        <span className="material-symbols-outlined text-[14px]">edit</span>
                       </button>
-                      <button onClick={() => openEditModal(t)} className="w-8 h-8 rounded-lg bg-white/5 hover:bg-primary/30 flex items-center justify-center text-slate-400 hover:text-primary transition-all" title="Edit">
-                        <span className="material-symbols-outlined text-[16px]">edit</span>
-                      </button>
-                      <button onClick={() => setDeleteConfirm(t.id)} className="w-8 h-8 rounded-lg bg-white/5 hover:bg-accent/30 flex items-center justify-center text-slate-400 hover:text-accent transition-all" title="Hapus">
-                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                      <button onClick={() => setDeleteConfirm(t.id)} className="w-7 h-7 rounded-lg bg-white/5 hover:bg-accent/30 flex items-center justify-center text-slate-400 hover:text-accent transition-all" title="Hapus">
+                        <span className="material-symbols-outlined text-[14px]">delete</span>
                       </button>
                     </div>
                   </div>

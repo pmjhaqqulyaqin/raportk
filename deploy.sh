@@ -53,6 +53,8 @@ else
     echo "    ⚠ Drizzle-kit failed, applying schema SQL directly..."
     docker exec raportk-db psql -U "$DB_USER" -d "$DB_NAME" -c "
         ALTER TABLE school_info ADD COLUMN IF NOT EXISTS npsn TEXT;
+        ALTER TABLE students ADD COLUMN IF NOT EXISTS birth_place TEXT;
+        ALTER TABLE students ADD COLUMN IF NOT EXISTS birth_date TEXT;
     " 2>&1 && echo "    ✓ Schema SQL applied" || echo "    ⚠ Schema SQL warning"
 fi
 

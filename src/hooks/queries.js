@@ -51,7 +51,7 @@ export const useDeleteStudent = () => {
   });
 };
 
-export const useImportDapodik = () => {
+export const useImportExcel = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (file) => {

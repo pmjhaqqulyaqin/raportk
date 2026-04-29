@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { useSchoolInfo, useUpdateSchoolInfo, useStudents, useCreateStudent, useDeleteStudent, useImportDapodik } from '../hooks/queries';
+import { useSchoolInfo, useUpdateSchoolInfo, useStudents, useCreateStudent, useDeleteStudent, useImportExcel } from '../hooks/queries';
 import apiClient from '../lib/apiClient';
 
 function SetupSekolah() {
@@ -27,11 +27,11 @@ function SetupSekolah() {
   const { data: studentsData } = useStudents();
   const { mutate: addStudentMutate } = useCreateStudent();
   const { mutate: deleteStudentMutate } = useDeleteStudent();
-  const { mutate: importDapodikMutate, isPending: isImporting } = useImportDapodik();
+  const { mutate: importExcelMutate, isPending: isImporting } = useImportExcel();
   const students = studentsData || [];
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newStudent, setNewStudent] = useState({ name: '', phase: 'Fondasi', group: 'A', height: '', weight: '', gender: 'L', nisn: '', nik: '' });
+  const [newStudent, setNewStudent] = useState({ name: '', phase: 'Fondasi', group: 'A', height: '', weight: '', gender: 'L', nisn: '', nik: '', birthPlace: '', birthDate: '' });
   const fileInputRef = useRef(null);
   const filteredStudents = students.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -39,11 +39,24 @@ function SetupSekolah() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (window.confirm(`Yakin ingin mengimpor data dari ${file.name}?`)) {
-      importDapodikMutate(file, {
+      importExcelMutate(file, {
         onSuccess: (data) => { alert(`Berhasil mengimpor ${data.count} murid!`); e.target.value = null; },
-        onError: () => { alert('Gagal mengimpor data.'); e.target.value = null; }
+        onError: () => { alert('Gagal mengimpor data. Pastikan format sesuai template.'); e.target.value = null; }
       });
     } else { e.target.value = null; }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const response = await apiClient.get('/students/import-template', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'Template_Import_Siswa.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch { alert('Gagal mengunduh template.'); }
   };
 
   const handleBackup = async () => {
@@ -326,14 +339,19 @@ function SetupSekolah() {
           {activeTab === 'siswa' && (
             <div className="space-y-3 lg:space-y-6">
               <div className="flex flex-col sm:flex-row justify-between gap-3 bg-white/5 p-3 lg:p-4 rounded-2xl border border-white/10">
-                <div className="flex gap-2 lg:gap-4 w-full md:w-auto">
-                  <input type="file" accept=".csv" className="hidden" ref={fileInputRef} onChange={handleImport} />
+                <div className="flex gap-2 lg:gap-4 w-full md:w-auto flex-wrap">
+                  <input type="file" accept=".xlsx,.xls" className="hidden" ref={fileInputRef} onChange={handleImport} />
                   <button onClick={() => fileInputRef.current?.click()} disabled={isImporting}
                     className="flex items-center gap-1.5 px-3 lg:px-5 py-2 lg:py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-full text-xs lg:text-sm font-bold shadow-inner">
                     <span className="material-symbols-outlined text-base">{isImporting ? 'sync' : 'upload_file'}</span>
-                    {isImporting ? 'Mengimpor...' : 'Import Dapodik'}
+                    {isImporting ? 'Mengimpor...' : 'Import Excel'}
                   </button>
-                  <div className="relative flex-1 md:w-64">
+                  <button onClick={handleDownloadTemplate}
+                    className="flex items-center gap-1.5 px-3 lg:px-5 py-2 lg:py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-full text-xs lg:text-sm font-bold">
+                    <span className="material-symbols-outlined text-base">download</span>
+                    Download Template
+                  </button>
+                  <div className="relative flex-1 md:w-64 min-w-[150px]">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <span className="material-symbols-outlined text-slate-400 text-lg">search</span>
                     </div>
@@ -568,6 +586,18 @@ function SetupSekolah() {
                     className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="20" />
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Tempat Lahir</label>
+                  <input type="text" value={newStudent.birthPlace} onChange={e => setNewStudent({...newStudent, birthPlace: e.target.value})}
+                    className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" placeholder="Cth: Kolaka" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Lahir</label>
+                  <input type="date" value={newStudent.birthDate} onChange={e => setNewStudent({...newStudent, birthDate: e.target.value})}
+                    className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-secondary shadow-inner" />
+                </div>
+              </div>
             </div>
             <div className="flex gap-2 pt-1">
               <button onClick={() => setShowAddModal(false)} className="flex-1 py-2.5 bg-white/5 text-slate-300 rounded-lg text-xs font-bold">Batal</button>
@@ -575,7 +605,7 @@ function SetupSekolah() {
                 if (!newStudent.name.trim()) return alert('Nama harus diisi');
                 addStudentMutate({...newStudent});
                 setShowAddModal(false);
-                setNewStudent({ name: '', phase: 'Fondasi', group: 'A', height: '', weight: '', gender: 'L', nisn: '', nik: '' });
+                setNewStudent({ name: '', phase: 'Fondasi', group: 'A', height: '', weight: '', gender: 'L', nisn: '', nik: '', birthPlace: '', birthDate: '' });
               }} className="flex-[2] py-2.5 bg-gradient-to-r from-secondary to-primary text-white rounded-lg text-xs font-bold active:scale-95 transition-all">
                 Simpan
               </button>

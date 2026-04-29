@@ -87,6 +87,8 @@ export const students = pgTable("students", {
     classId: uuid("class_id").references(() => classes.id, { onDelete: 'set null' }),
     nisn: text("nisn"),
     nik: text("nik"),
+    birthPlace: text("birth_place"),
+    birthDate: text("birth_date"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
