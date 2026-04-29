@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMySchool, useJoinSchool, useLeaveSchool, useSchoolMembers, useSchoolProgress, useSchoolInfo,
   useSchoolStudents, useImportFromColleague, useTransferStudent, useSchoolDuplicates,
-  useTeacherTemplates, useForkTemplates } from '../hooks/queries';
+  useTeacherTemplates, useForkTemplates, useActivityFeed } from '../hooks/queries';
 
 function SchoolHub() {
   const { data: mySchool, isLoading } = useMySchool();
@@ -17,6 +18,9 @@ function SchoolHub() {
   const { mutate: importStudents, isPending: isImporting } = useImportFromColleague();
   const { mutate: transferStudent, isPending: isTransferring } = useTransferStudent();
   const { mutate: forkTemplates, isPending: isForking } = useForkTemplates();
+  const { data: activities } = useActivityFeed(npsn);
+  const queryClient = useQueryClient();
+  const sseRef = useRef(null);
 
   const [joinNpsn, setJoinNpsn] = useState('');
   const [joinName, setJoinName] = useState('');
@@ -54,6 +58,19 @@ function SchoolHub() {
     });
   };
 
+  // SSE live connection
+  useEffect(() => {
+    if (!npsn) return;
+    const baseUrl = import.meta.env.VITE_API_URL || '';
+    const es = new EventSource(`${baseUrl}/api/schools/${npsn}/stream`, { withCredentials: true });
+    es.addEventListener('activity', () => {
+      queryClient.invalidateQueries({ queryKey: ['activityFeed', npsn] });
+      queryClient.invalidateQueries({ queryKey: ['schoolProgress', npsn] });
+    });
+    sseRef.current = es;
+    return () => es.close();
+  }, [npsn, queryClient]);
+
   if (isLoading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-10 h-10 border-[3px] border-white/10 border-t-blue-500 rounded-full"></div></div>;
 
   // JOIN FORM
@@ -90,6 +107,7 @@ function SchoolHub() {
   const otherMembers = (members || []).filter(m => m.userId !== mySchool?.memberId?.split?.('-')?.[0]);
   const tabs = [
     { id: 'progress', label: 'Progress', icon: 'monitoring' },
+    { id: 'activity', label: 'Aktivitas', icon: 'notifications' },
     { id: 'members', label: 'Anggota', icon: 'group' },
     { id: 'templates', label: 'Template', icon: 'description' },
     { id: 'import', label: 'Import Siswa', icon: 'person_add' },
@@ -292,6 +310,36 @@ function SchoolHub() {
                 </button>
               </>)}
               {tplTeacher && teacherTpls && teacherTpls.length === 0 && <p className="text-xs text-slate-500 text-center py-4">Guru ini belum memiliki template.</p>}
+            </div>
+          )}
+          {/* ACTIVITY TAB */}
+          {activeTab === 'activity' && (
+            <div className="glass-card rounded-2xl p-5 border-white/5 space-y-3">
+              <p className="text-xs text-slate-400">Semua aktivitas di sekolah ini ditampilkan secara real-time.</p>
+              {(!activities || activities.length === 0) ? (
+                <p className="text-xs text-slate-500 text-center py-8">Belum ada aktivitas.</p>
+              ) : (
+                <div className="space-y-2">
+                  {activities.map(a => {
+                    const icons = { member_joined: 'person_add', students_imported: 'download', student_transferred: 'swap_horiz', templates_forked: 'fork_right' };
+                    const colors = { member_joined: 'text-emerald-400 bg-emerald-500/10', students_imported: 'text-blue-400 bg-blue-500/10', student_transferred: 'text-amber-400 bg-amber-500/10', templates_forked: 'text-purple-400 bg-purple-500/10' };
+                    const labels = { member_joined: 'bergabung ke sekolah', students_imported: `mengimpor ${a.payload?.count || ''} siswa`, student_transferred: `mentransfer siswa`, templates_forked: `mengimpor ${a.payload?.count || ''} template` };
+                    const ago = ((Date.now() - new Date(a.createdAt).getTime()) / 60000);
+                    const timeStr = ago < 1 ? 'Baru saja' : ago < 60 ? `${Math.floor(ago)} menit lalu` : ago < 1440 ? `${Math.floor(ago / 60)} jam lalu` : `${Math.floor(ago / 1440)} hari lalu`;
+                    return (
+                      <div key={a.id} className="flex items-start gap-3 bg-black/20 rounded-xl p-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${colors[a.action] || 'text-slate-400 bg-white/5'}`}>
+                          <span className="material-symbols-outlined text-sm">{icons[a.action] || 'info'}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-white"><span className="font-bold">{a.actorName}</span> <span className="text-slate-400">{labels[a.action] || a.action}</span></p>
+                          <p className="text-[10px] text-slate-500 mt-0.5">{timeStr}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 

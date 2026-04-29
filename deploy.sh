@@ -82,6 +82,14 @@ else
             is_official BOOLEAN DEFAULT FALSE,
             shared_at TIMESTAMP DEFAULT NOW() NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS activity_logs (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+            actor_id TEXT NOT NULL REFERENCES \"user\"(id) ON DELETE CASCADE,
+            action TEXT NOT NULL,
+            payload TEXT,
+            created_at TIMESTAMP DEFAULT NOW() NOT NULL
+        );
     " 2>&1 && echo "    ✓ Schema SQL applied" || echo "    ⚠ Schema SQL warning"
 fi
 

@@ -1,10 +1,26 @@
 import { Router } from 'express';
 import { db } from '../db';
-import { schools, schoolMembers, schoolInfo, user, students, reports, sharedTemplates, templates } from '../db/schema';
-import { eq, and, count } from 'drizzle-orm';
+import { schools, schoolMembers, schoolInfo, user, students, reports, sharedTemplates, templates, activityLogs } from '../db/schema';
+import { eq, and, desc } from 'drizzle-orm';
 import { requireAuth } from '../middleware/authMiddleware';
+import { addClient, broadcast } from '../lib/sse';
 
 const router = Router();
+
+// Helper: log activity + broadcast SSE
+async function logActivity(schoolId: string, npsn: string, actorId: string, action: string, payload: any) {
+    try {
+        const entry = await db.insert(activityLogs).values({
+            schoolId, actorId, action, payload: JSON.stringify(payload),
+        }).returning();
+        const actor = await db.select({ name: user.name }).from(user).where(eq(user.id, actorId));
+        broadcast(npsn, 'activity', {
+            id: entry[0].id, action, payload, actorName: actor[0]?.name || 'Unknown',
+            createdAt: entry[0].createdAt,
+        });
+    } catch (e) { console.error('logActivity error:', e); }
+}
+
 router.use(requireAuth);
 
 // GET /api/schools/my — Get current user's school hub
@@ -86,6 +102,9 @@ router.post('/join', async (req, res) => {
         }
 
         const schoolData = await db.select().from(schools).where(eq(schools.id, schoolId));
+
+        // Phase 4: broadcast
+        await logActivity(schoolId, npsn, userId, 'member_joined', { role, schoolName: schoolData[0].name });
 
         res.json({
             success: true,
@@ -361,6 +380,8 @@ router.post('/:npsn/import-students', async (req, res) => {
             imported = newStudents.length;
         }
 
+        if (imported > 0) await logActivity(ctx.school.id, npsn, userId, 'students_imported', { count: imported, fromUserId });
+
         res.json({
             success: true,
             imported,
@@ -404,6 +425,8 @@ router.post('/:npsn/transfer-student', async (req, res) => {
             userId: toUserId,
             updatedAt: new Date(),
         }).where(and(eq(reports.studentId, studentId), eq(reports.userId, userId)));
+
+        await logActivity(ctx.school.id, npsn, userId, 'student_transferred', { studentName: student[0].name, toUserId });
 
         res.json({
             success: true,
@@ -573,6 +596,8 @@ router.post('/:npsn/templates/fork', async (req, res) => {
 
         if (newTpls.length > 0) await db.insert(templates).values(newTpls);
 
+        if (newTpls.length > 0) await logActivity(ctx.school.id, npsn, userId, 'templates_forked', { count: newTpls.length });
+
         res.json({
             success: true,
             imported: newTpls.length,
@@ -694,6 +719,63 @@ router.delete('/:npsn/templates/:shareId', async (req, res) => {
     } catch (error) {
         console.error('Unshare error:', error);
         res.status(500).json({ error: 'Gagal menghapus share' });
+    }
+});
+
+// =============================================
+// PHASE 4: REAL-TIME (SSE + ACTIVITY FEED)
+// =============================================
+
+// GET /api/schools/:npsn/stream — SSE endpoint
+router.get('/:npsn/stream', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn } = req.params;
+
+    const ctx = await verifyMembership(userId, npsn);
+    if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+    res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no',
+    });
+    res.write(`data: ${JSON.stringify({ type: 'connected', npsn })}\n\n`);
+    addClient(npsn, res);
+
+    // Keep-alive ping every 30s
+    const ping = setInterval(() => { try { res.write(': ping\n\n'); } catch {} }, 30000);
+    res.on('close', () => clearInterval(ping));
+});
+
+// GET /api/schools/:npsn/activity — Activity feed (paginated)
+router.get('/:npsn/activity', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn } = req.params;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+
+    try {
+        const ctx = await verifyMembership(userId, npsn);
+        if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+        const logs = await db.select({
+            id: activityLogs.id,
+            action: activityLogs.action,
+            payload: activityLogs.payload,
+            createdAt: activityLogs.createdAt,
+            actorName: user.name,
+            actorId: user.id,
+        })
+        .from(activityLogs)
+        .innerJoin(user, eq(activityLogs.actorId, user.id))
+        .where(eq(activityLogs.schoolId, ctx.school.id))
+        .orderBy(desc(activityLogs.createdAt))
+        .limit(limit);
+
+        res.json(logs.map(l => ({ ...l, payload: l.payload ? JSON.parse(l.payload) : {} })));
+    } catch (error) {
+        console.error('Activity feed error:', error);
+        res.status(500).json({ error: 'Gagal memuat aktivitas' });
     }
 });
 

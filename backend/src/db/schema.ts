@@ -157,3 +157,12 @@ export const sharedTemplates = pgTable("shared_templates", {
     sharedAt: timestamp("shared_at").defaultNow().notNull(),
 });
 
+// Activity log for real-time feed
+export const activityLogs = pgTable("activity_logs", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    schoolId: uuid("school_id").notNull().references(() => schools.id, { onDelete: 'cascade' }),
+    actorId: text("actor_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+    action: text("action").notNull(), // 'member_joined', 'students_imported', 'student_transferred', 'templates_forked', 'report_completed'
+    payload: text("payload"),         // JSON string with details
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});

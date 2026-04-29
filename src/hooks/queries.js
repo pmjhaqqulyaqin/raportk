@@ -369,3 +369,16 @@ export const useForkTemplates = () => {
     },
   });
 };
+
+// --- PHASE 4: REAL-TIME ---
+export const useActivityFeed = (npsn) => {
+  return useQuery({
+    queryKey: ['activityFeed', npsn],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/schools/${npsn}/activity`);
+      return data;
+    },
+    enabled: !!npsn,
+    refetchInterval: 30000, // Fallback polling every 30s
+  });
+};
