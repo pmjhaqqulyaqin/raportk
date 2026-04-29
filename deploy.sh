@@ -24,6 +24,19 @@ git fetch origin main
 git reset --hard origin/main
 echo "    ✓ Code updated"
 
+# 1b. Ensure VAPID keys in .env.production (idempotent)
+if ! grep -q "VAPID_PUBLIC_KEY" "$APP_DIR/.env.production" 2>/dev/null; then
+    echo "    🔑 Adding VAPID keys for push notifications..."
+    cat >> "$APP_DIR/.env.production" << 'EOF'
+
+# Web Push (VAPID)
+VAPID_PUBLIC_KEY=BKbopqiukolYv03-qNuLXacNsGewQKh16VTg2QTz8DYMbXpT817MaQnEoV6qDfhS_LiNDPKVJaLBzh_h2ajxC9M
+VAPID_PRIVATE_KEY=z4LhRVCygh7bjiy-h4IQ8IdS9q59JggQIwyW9g0hjyw
+VAPID_EMAIL=mailto:admin@raportk.my.id
+EOF
+    echo "    ✓ VAPID keys added"
+fi
+
 # 2. Build & restart containers
 echo ""
 echo "🐳 [2/5] Building and starting Docker containers..."
