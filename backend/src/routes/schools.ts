@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db';
-import { schools, schoolMembers, schoolInfo, user, students, reports } from '../db/schema';
+import { schools, schoolMembers, schoolInfo, user, students, reports, sharedTemplates, templates } from '../db/schema';
 import { eq, and, count } from 'drizzle-orm';
 import { requireAuth } from '../middleware/authMiddleware';
 
@@ -510,5 +510,122 @@ router.get('/:npsn/duplicates', async (req, res) => {
     }
 });
 
-export default router;
+// =============================================
+// PHASE 3: TEMPLATE SHARING
+// =============================================
 
+// POST /api/schools/:npsn/templates/share — Share a template to school hub
+router.post('/:npsn/templates/share', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn } = req.params;
+    const { templateId } = req.body;
+    try {
+        const ctx = await verifyMembership(userId, npsn);
+        if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+        // Check template exists and belongs to user
+        const tpl = await db.select().from(templates).where(and(eq(templates.id, templateId), eq(templates.userId, userId)));
+        if (tpl.length === 0) return res.status(404).json({ error: 'Template tidak ditemukan' });
+
+        // Check if already shared
+        const existing = await db.select().from(sharedTemplates)
+            .where(and(eq(sharedTemplates.templateId, templateId), eq(sharedTemplates.schoolId, ctx.school.id)));
+        if (existing.length > 0) return res.status(400).json({ error: 'Template sudah dibagikan' });
+
+        const isOfficial = ctx.membership.role === 'admin';
+        await db.insert(sharedTemplates).values({ templateId, schoolId: ctx.school.id, sharedBy: userId, isOfficial });
+        res.json({ success: true, message: `Template "${tpl[0].name}" berhasil dibagikan${isOfficial ? ' sebagai template resmi' : ''}.` });
+    } catch (error) {
+        console.error('Share template error:', error);
+        res.status(500).json({ error: 'Gagal membagikan template' });
+    }
+});
+
+// GET /api/schools/:npsn/templates — List shared templates in the school hub
+router.get('/:npsn/templates', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn } = req.params;
+    try {
+        const ctx = await verifyMembership(userId, npsn);
+        if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+        const shared = await db.select({
+            shareId: sharedTemplates.id,
+            isOfficial: sharedTemplates.isOfficial,
+            sharedAt: sharedTemplates.sharedAt,
+            sharedByName: user.name,
+            sharedById: user.id,
+            templateId: templates.id,
+            category: templates.category,
+            name: templates.name,
+            text: templates.text,
+            phase: templates.phase,
+            groupName: templates.groupName,
+            semester: templates.semester,
+        })
+        .from(sharedTemplates)
+        .innerJoin(templates, eq(sharedTemplates.templateId, templates.id))
+        .innerJoin(user, eq(sharedTemplates.sharedBy, user.id))
+        .where(eq(sharedTemplates.schoolId, ctx.school.id));
+
+        res.json(shared);
+    } catch (error) {
+        console.error('List shared templates error:', error);
+        res.status(500).json({ error: 'Gagal memuat template' });
+    }
+});
+
+// POST /api/schools/:npsn/templates/fork — Fork (copy) a shared template to own collection
+router.post('/:npsn/templates/fork', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn } = req.params;
+    const { templateId } = req.body;
+    try {
+        const ctx = await verifyMembership(userId, npsn);
+        if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+        const tpl = await db.select().from(templates).where(eq(templates.id, templateId));
+        if (tpl.length === 0) return res.status(404).json({ error: 'Template tidak ditemukan' });
+
+        const forked = await db.insert(templates).values({
+            userId,
+            category: tpl[0].category,
+            name: `${tpl[0].name} (fork)`,
+            text: tpl[0].text,
+            phase: tpl[0].phase,
+            groupName: tpl[0].groupName,
+            semester: tpl[0].semester,
+        }).returning();
+
+        res.json({ success: true, template: forked[0], message: `Template "${tpl[0].name}" berhasil di-fork.` });
+    } catch (error) {
+        console.error('Fork template error:', error);
+        res.status(500).json({ error: 'Gagal fork template' });
+    }
+});
+
+// DELETE /api/schools/:npsn/templates/:shareId — Unshare a template (owner or admin)
+router.delete('/:npsn/templates/:shareId', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn, shareId } = req.params;
+    try {
+        const ctx = await verifyMembership(userId, npsn);
+        if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+        const share = await db.select().from(sharedTemplates).where(eq(sharedTemplates.id, shareId));
+        if (share.length === 0) return res.status(404).json({ error: 'Tidak ditemukan' });
+
+        // Only sharer or admin can remove
+        if (share[0].sharedBy !== userId && ctx.membership.role !== 'admin') {
+            return res.status(403).json({ error: 'Hanya pemilik atau admin yang bisa menghapus' });
+        }
+
+        await db.delete(sharedTemplates).where(eq(sharedTemplates.id, shareId));
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Unshare error:', error);
+        res.status(500).json({ error: 'Gagal menghapus share' });
+    }
+});
+
+export default router;
