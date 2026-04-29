@@ -37,6 +37,19 @@ EOF
     echo "    ✓ VAPID keys added"
 fi
 
+# 1c. Ensure multi Gemini API keys in .env.production (idempotent)
+GEMINI_KEYS="AIzaSyAcfqP_Q9UhE_DRwm_domaqjLDay5Rzkkw,AIzaSyBQTrG5Lhb3B1teSF3cH87JTeFFH1BkDGI,AIzaSyCWrg5fHd95ULk89PVlnDXj9Is_-QSNiJo,AIzaSyDC1_lf2_OIG_1gMEkAJjL-_LGUxMfhI6w,AIzaSyDex5B99gSZG5NDyOxezFyso4vlcnvnbvg"
+CURRENT_KEY=$(grep -oP 'GEMINI_API_KEY=\K.*' "$APP_DIR/.env.production" 2>/dev/null || echo "")
+if [ "$CURRENT_KEY" != "$GEMINI_KEYS" ]; then
+    echo "    🤖 Updating Gemini API keys (5 keys rotation)..."
+    if grep -q "GEMINI_API_KEY" "$APP_DIR/.env.production" 2>/dev/null; then
+        sed -i "s|^GEMINI_API_KEY=.*|GEMINI_API_KEY=$GEMINI_KEYS|" "$APP_DIR/.env.production"
+    else
+        echo "GEMINI_API_KEY=$GEMINI_KEYS" >> "$APP_DIR/.env.production"
+    fi
+    echo "    ✓ Gemini keys updated"
+fi
+
 # 2. Build & restart containers
 echo ""
 echo "🐳 [2/5] Building and starting Docker containers..."
