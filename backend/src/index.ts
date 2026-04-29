@@ -11,6 +11,7 @@ import reportsRouter from './routes/reports';
 import templatesRouter from './routes/templates';
 import backupRouter from './routes/backup';
 import aiRouter from './routes/ai';
+import uploadRouter from './routes/upload';
 
 // Load .env — Docker production: /app/.env.production, Dev: ../../.env
 const isProduction = process.env.NODE_ENV === 'production';
@@ -38,6 +39,10 @@ app.use('/api/reports', reportsRouter);
 app.use('/api/templates', templatesRouter);
 app.use('/api/backup', backupRouter);
 app.use('/api/ai', aiRouter);
+app.use('/api/upload', uploadRouter);
+
+// Serve uploaded files (profile photos, etc.)
+app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
 // A simple protected route test
 app.get('/api/protected', async (req, res) => {

@@ -51,8 +51,8 @@ COPY backend/src/db/schema.ts ./src/db/schema.ts
 # Install drizzle-kit globally for migrations (used by deploy.sh)
 RUN npm install -g drizzle-kit tsx drizzle-orm dotenv
 
-# Create uploads directory
-RUN mkdir -p /app/uploads
+# Create uploads directory with subdirectories
+RUN mkdir -p /app/uploads/profiles
 
 # Expose backend port
 EXPOSE 3000

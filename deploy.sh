@@ -56,6 +56,9 @@ else
     docker exec raportk-db psql -U "$DB_USER" -d "$DB_NAME" -c "
         -- v1.1: Add NPSN column to school_info
         ALTER TABLE school_info ADD COLUMN IF NOT EXISTS npsn TEXT;
+        
+        -- v1.2: Fix corrupted base64 image data in user table (causes session hang)
+        UPDATE \"user\" SET image = NULL WHERE image LIKE 'data:%' OR image LIKE 'blob:%' OR length(image) > 500;
     " 2>&1 && echo "    ✓ SQL migrations applied" || echo "    ⚠ SQL migration warning (tables may not exist yet on first run)"
 fi
 

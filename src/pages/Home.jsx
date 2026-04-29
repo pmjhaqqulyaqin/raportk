@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStudents, useSchoolInfo } from '../hooks/queries';
 import { useSession, authClient } from '../lib/authClient';
+import apiClient from '../lib/apiClient';
 
 function Home() {
   const { data: session } = useSession();
@@ -26,6 +27,7 @@ function Home() {
   const [editName, setEditName] = useState(session?.user?.name || '');
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [uploadSaving, setUploadSaving] = useState(false);
 
   const handleLogout = async () => {
     await authClient.signOut();
@@ -333,22 +335,21 @@ function Home() {
             {photoPreview && <p className="text-[10px] text-emerald-400">✓ {profilePhoto?.name}</p>}
             <div className="flex gap-2 pt-1">
               <button onClick={() => { setShowUploadPhoto(false); setPhotoPreview(null); setProfilePhoto(null); }} className="flex-1 py-2.5 bg-white/5 text-slate-300 rounded-lg text-xs font-bold">Batal</button>
-              <button disabled={!profilePhoto} onClick={async () => {
+              <button disabled={!profilePhoto || uploadSaving} onClick={async () => {
                 if (!profilePhoto) return;
+                setUploadSaving(true);
                 try {
-                  // Convert file to base64 data URL for persistence
-                  const reader = new FileReader();
-                  reader.onload = async (ev) => {
-                    try {
-                      await authClient.updateUser({ image: ev.target.result });
-                      setShowUploadPhoto(false); setPhotoPreview(null); setProfilePhoto(null);
-                      window.location.reload();
-                    } catch { alert('Gagal upload foto.'); }
-                  };
-                  reader.readAsDataURL(profilePhoto);
+                  const formData = new FormData();
+                  formData.append('image', profilePhoto);
+                  await apiClient.post('/upload/profile', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                  });
+                  setShowUploadPhoto(false); setPhotoPreview(null); setProfilePhoto(null);
+                  window.location.reload();
                 } catch { alert('Gagal upload foto.'); }
+                setUploadSaving(false);
               }} className="flex-[2] py-2.5 bg-gradient-to-r from-secondary to-primary text-white rounded-lg text-xs font-bold active:scale-95 transition-all disabled:opacity-40">
-                Simpan Foto
+                {uploadSaving ? 'Mengupload...' : 'Simpan Foto'}
               </button>
             </div>
           </div>
