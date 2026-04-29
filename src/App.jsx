@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
-import DataMaster from './pages/Dashboard'; // Formerly Dashboard.jsx
+import DataMaster from './pages/Dashboard';
 import ReportEditor from './pages/ReportEditor';
 import PrintPreview from './pages/PrintPreview';
 import SetupSekolah from './pages/SetupSekolah';
