@@ -170,8 +170,8 @@ function Home() {
             <div className="lg:col-span-8 glass-card rounded-2xl lg:rounded-[2rem] p-4 lg:p-8 relative overflow-hidden flex flex-col justify-center shadow-lg border-white/5">
               <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
               <div className="flex items-center gap-4 lg:gap-6 relative z-10">
-                <div className="w-16 h-16 lg:w-24 lg:h-24 rounded-2xl lg:rounded-[2rem] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-xl shadow-indigo-500/20 shrink-0">
-                  <span className="material-symbols-outlined text-3xl lg:text-5xl" data-icon="school">school</span>
+                <div className="w-16 h-16 lg:w-24 lg:h-24 rounded-2xl lg:rounded-[2rem] overflow-hidden shadow-xl shadow-indigo-500/20 shrink-0">
+                  <img src="/logo.png" alt="Logo Sekolah" className="w-full h-full object-contain bg-gradient-to-br from-indigo-500 to-purple-600 p-2" />
                 </div>
                 <div>
                   <div className="flex items-center gap-3 mb-2">

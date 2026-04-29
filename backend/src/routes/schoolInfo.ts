@@ -22,8 +22,21 @@ router.get('/', async (req, res) => {
 
 router.put('/', async (req, res) => {
     const userId = (req as any).user.id;
-    const updateData = req.body;
+    const { schoolName, npsn, principal, principalNip, teacher, teacherNip, academicYear, semester, date, location } = req.body;
     
+    const safeData = {
+        schoolName: schoolName || null,
+        npsn: npsn || null,
+        principal: principal || null,
+        principalNip: principalNip || null,
+        teacher: teacher || null,
+        teacherNip: teacherNip || null,
+        academicYear: academicYear || null,
+        semester: semester || null,
+        date: date || null,
+        location: location || null,
+    };
+
     try {
         // Check if exists
         const existing = await db.select().from(schoolInfo).where(eq(schoolInfo.userId, userId));
@@ -32,18 +45,19 @@ router.put('/', async (req, res) => {
             // Create
             const created = await db.insert(schoolInfo).values({
                 userId,
-                ...updateData
+                ...safeData
             }).returning();
             return res.json(created[0]);
         } else {
             // Update
             const updated = await db.update(schoolInfo).set({
-                ...updateData,
+                ...safeData,
                 updatedAt: new Date()
             }).where(eq(schoolInfo.userId, userId)).returning();
             return res.json(updated[0]);
         }
     } catch (error) {
+        console.error('School info update error:', error);
         res.status(500).json({ error: 'Failed to update school info' });
     }
 });

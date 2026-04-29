@@ -317,8 +317,7 @@ function PrintPreview() {
                   <h2 className="text-2xl font-bold uppercase tracking-wider mb-12 text-center">PENDIDIKAN ANAK USIA DINI</h2>
                   
                   <div className="w-56 h-56 my-8 flex items-center justify-center p-4">
-                    <img src="/logo_1771815929.png" alt="Logo PAUD" className="w-full h-full object-contain drop-shadow-xl" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
-                    <span className="material-symbols-outlined text-8xl text-slate-300 hidden" data-icon="school">school</span>
+                    <img src="/logo.png" alt="Logo PAUD" className="w-full h-full object-contain drop-shadow-xl" />
                   </div>
 
                   <div className="space-y-4 w-full max-w-md mx-auto text-center mt-16">

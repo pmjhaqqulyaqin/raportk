@@ -14,10 +14,10 @@ function BottomNav() {
 
   const tabs = [
     { to: '/', label: 'Dashboard', icon: 'space_dashboard', active: isHome },
-    { to: '/setup', label: 'Pengaturan', icon: 'settings', active: isSetup },
-    { to: '/editor', label: 'Input Nilai', icon: 'edit_document', active: isIsi, isCenter: true },
     { to: '/templates', label: 'Template', icon: 'description', active: isTemplate },
+    { to: '/editor', label: 'Input Nilai', icon: 'edit_document', active: isIsi, isCenter: true },
     { to: '/print', label: 'Cetak', icon: 'print', active: isCetak },
+    { to: '/setup', label: 'Pengaturan', icon: 'settings', active: isSetup },
   ];
 
   return (
