@@ -24,37 +24,19 @@ git fetch origin main
 git reset --hard origin/main
 echo "    ✓ Code updated"
 
-# 1b. Ensure VAPID keys in .env.production (idempotent)
-if ! grep -q "VAPID_PUBLIC_KEY" "$APP_DIR/.env.production" 2>/dev/null; then
-    echo "    🔑 Adding VAPID keys for push notifications..."
-    cat >> "$APP_DIR/.env.production" << 'EOF'
-
-# Web Push (VAPID)
-VAPID_PUBLIC_KEY=BKbopqiukolYv03-qNuLXacNsGewQKh16VTg2QTz8DYMbXpT817MaQnEoV6qDfhS_LiNDPKVJaLBzh_h2ajxC9M
-VAPID_PRIVATE_KEY=z4LhRVCygh7bjiy-h4IQ8IdS9q59JggQIwyW9g0hjyw
-VAPID_EMAIL=mailto:admin@raportk.my.id
-EOF
-    echo "    ✓ VAPID keys added"
-fi
-
-# 1c. Ensure multi Gemini API keys in .env.production (idempotent)
-GEMINI_KEYS="AIzaSyAcfqP_Q9UhE_DRwm_domaqjLDay5Rzkkw,AIzaSyBQTrG5Lhb3B1teSF3cH87JTeFFH1BkDGI,AIzaSyCWrg5fHd95ULk89PVlnDXj9Is_-QSNiJo,AIzaSyDC1_lf2_OIG_1gMEkAJjL-_LGUxMfhI6w,AIzaSyDex5B99gSZG5NDyOxezFyso4vlcnvnbvg"
-CURRENT_KEY=$(grep -oP 'GEMINI_API_KEY=\K.*' "$APP_DIR/.env.production" 2>/dev/null || echo "")
-if [ "$CURRENT_KEY" != "$GEMINI_KEYS" ]; then
-    echo "    🤖 Updating Gemini API keys (5 keys rotation)..."
-    if grep -q "GEMINI_API_KEY" "$APP_DIR/.env.production" 2>/dev/null; then
-        sed -i "s|^GEMINI_API_KEY=.*|GEMINI_API_KEY=$GEMINI_KEYS|" "$APP_DIR/.env.production"
-    else
-        echo "GEMINI_API_KEY=$GEMINI_KEYS" >> "$APP_DIR/.env.production"
+# 1b. Verify required secrets in .env.production
+echo "    🔐 Checking required environment variables..."
+MISSING=""
+for VAR in VAPID_PUBLIC_KEY VAPID_PRIVATE_KEY VAPID_EMAIL GEMINI_API_KEY; do
+    if ! grep -q "^${VAR}=" "$APP_DIR/.env.production" 2>/dev/null; then
+        MISSING="$MISSING $VAR"
     fi
-    echo "    ✓ Gemini keys updated"
-fi
-
-# 1d. Ensure OpenRouter API key in .env.production (idempotent)
-if ! grep -q "OPENROUTER_API_KEY" "$APP_DIR/.env.production" 2>/dev/null; then
-    echo "    🌐 Adding OpenRouter fallback key..."
-    echo "OPENROUTER_API_KEY=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" >> "$APP_DIR/.env.production"
-    echo "    ✓ OpenRouter key added"
+done
+if [ -n "$MISSING" ]; then
+    echo "    ⚠ MISSING in .env.production:$MISSING"
+    echo "    → Add them manually: nano $APP_DIR/.env.production"
+else
+    echo "    ✓ All required secrets present"
 fi
 
 # 2. Build & restart containers

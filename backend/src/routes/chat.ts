@@ -3,6 +3,7 @@ import { db } from '../db';
 import { chatMessages, schoolMembers, schools, user } from '../db/schema';
 import { eq, and, desc, lt, or, isNull, sql } from 'drizzle-orm';
 import { requireAuth } from '../middleware/authMiddleware';
+import { validateBody, chatSendSchema, chatEditSchema } from '../middleware/validate';
 import { broadcast } from '../lib/sse';
 import { sendPushToUser, sendPushToSchoolMembers } from './push';
 
@@ -123,17 +124,10 @@ router.get('/:npsn/conversations', async (req, res) => {
 });
 
 // POST /api/chat/:npsn — Send message (group or DM)
-router.post('/:npsn', async (req, res) => {
+router.post('/:npsn', validateBody(chatSendSchema), async (req, res) => {
     const userId = (req as any).user.id;
     const { npsn } = req.params;
     const { message, replyTo, recipientId } = req.body;
-
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-        return res.status(400).json({ error: 'Pesan tidak boleh kosong' });
-    }
-    if (message.length > 1000) {
-        return res.status(400).json({ error: 'Pesan maksimal 1000 karakter' });
-    }
 
     try {
         const ctx = await getSchoolCtx(userId, npsn);
@@ -190,17 +184,10 @@ router.post('/:npsn', async (req, res) => {
 });
 
 // PUT /api/chat/:npsn/:messageId — Edit own message
-router.put('/:npsn/:messageId', async (req, res) => {
+router.put('/:npsn/:messageId', validateBody(chatEditSchema), async (req, res) => {
     const userId = (req as any).user.id;
     const { npsn, messageId } = req.params;
     const { message } = req.body;
-
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-        return res.status(400).json({ error: 'Pesan tidak boleh kosong' });
-    }
-    if (message.length > 1000) {
-        return res.status(400).json({ error: 'Pesan maksimal 1000 karakter' });
-    }
 
     try {
         const ctx = await getSchoolCtx(userId, npsn);

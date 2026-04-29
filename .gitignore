@@ -23,6 +23,14 @@ dist-ssr
 *.sln
 *.sw?
 
-# Production environment (NEVER commit!)
+# ─── Secrets (NEVER commit!) ────────────────
+.env
+.env.local
 .env.production
+.env.*.local
+.sshpass*
 
+# ─── Uploads & generated ────────────────────
+backend/uploads/
+*.pem
+*.key

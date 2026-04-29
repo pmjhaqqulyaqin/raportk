@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { requireAuth } from '../middleware/authMiddleware';
+import { validateBody, aiGenerateSchema } from '../middleware/validate';
 
 const router = Router();
 router.use(requireAuth);
@@ -159,12 +160,8 @@ async function smartGenerate(prompt: string, category: string, keywords: string,
 }
 
 // ─── Generate Narasi ─────────────────────────────────────
-router.post('/generate', async (req, res) => {
+router.post('/generate', validateBody(aiGenerateSchema), async (req, res) => {
     const { category, keywords, studentName, tone } = req.body;
-
-    if (!keywords || !category) {
-        return res.status(400).json({ error: 'Keywords and category are required' });
-    }
 
     const cacheKey = `gen:${category}:${keywords}:${studentName || ''}:${tone || ''}`;
     const cached = getCached(cacheKey);
