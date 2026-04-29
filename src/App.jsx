@@ -19,7 +19,13 @@ const ProtectedRoute = ({ children }) => {
   const { data: session, isPending } = useSession();
 
   if (isPending) {
-    return <div className="min-h-[max(884px,100dvh)] w-full flex items-center justify-center text-white font-bold">Memuat...</div>;
+    return (
+      <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center gap-6" style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)' }}>
+        <img src="/logo.png" alt="Logo" className="w-24 h-24 rounded-3xl object-contain animate-pulse" />
+        <p className="text-slate-400 text-sm font-bold tracking-wider">Memuat...</p>
+        <div className="w-10 h-10 border-[3px] border-white/10 border-t-blue-500 rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   if (!session) {

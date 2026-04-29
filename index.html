@@ -2,7 +2,7 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
     <!-- PWA: Apple Touch Icon -->
@@ -31,7 +31,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Splash Screen — visible until React mounts -->
+      <div id="splash-screen" style="min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#0F172A 0%,#1E293B 100%);gap:24px;">
+        <img src="/logo.png" alt="Logo" style="width:96px;height:96px;border-radius:24px;object-fit:contain;animation:pulse-logo 2s ease-in-out infinite;" />
+        <div style="color:#94a3b8;font-family:Inter,sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;">Memuat Aplikasi...</div>
+        <div style="width:40px;height:40px;border:3px solid rgba(255,255,255,0.1);border-top-color:#3b82f6;border-radius:50%;animation:spin .8s linear infinite;"></div>
+      </div>
+      <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse-logo { 0%,100% { transform: scale(1); opacity:1; } 50% { transform: scale(1.05); opacity:0.85; } }
+      </style>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
 
     <!-- PWA: Early capture of install prompt + Service Worker -->
