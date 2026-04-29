@@ -6,19 +6,15 @@ const router = Router();
 router.use(requireAuth);
 
 // ─── Multi-Key Rotation ─────────────────────────────────
-// Support comma-separated keys: GEMINI_API_KEY=key1,key2,key3
 let keyIndex = 0;
 const getApiKeys = (): string[] => {
     const raw = process.env.GEMINI_API_KEY || '';
     return raw.split(',').map(k => k.trim()).filter(Boolean);
 };
 
-// ─── Model Fallback Chain ────────────────────────────────
-const MODEL_CHAIN = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-lite'];
-
 // ─── In-Memory Cache ─────────────────────────────────────
 const cache = new Map<string, { text: string; ts: number }>();
-const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
+const CACHE_TTL = 1000 * 60 * 60 * 24;
 const MAX_CACHE = 200;
 
 function getCached(key: string): string | null {
@@ -30,55 +26,136 @@ function getCached(key: string): string | null {
 
 function setCache(key: string, text: string) {
     if (cache.size >= MAX_CACHE) {
-        // Evict oldest
         const oldest = cache.keys().next().value;
         if (oldest) cache.delete(oldest);
     }
     cache.set(key, { text, ts: Date.now() });
 }
 
-// ─── Smart Generate with Key Rotation + Model Fallback ───
-async function smartGenerate(prompt: string): Promise<string> {
+// ─── Provider 1: Google Gemini (multi-key × multi-model) ─
+const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+
+async function tryGemini(prompt: string): Promise<string | null> {
     const keys = getApiKeys();
-    if (keys.length === 0) throw new Error('GEMINI_API_KEY not configured');
+    if (keys.length === 0) return null;
 
-    // Try each key × each model
-    const errors: string[] = [];
     for (let ki = 0; ki < keys.length; ki++) {
-        const currentKeyIdx = (keyIndex + ki) % keys.length;
-        const apiKey = keys[currentKeyIdx];
-        const genAI = new GoogleGenerativeAI(apiKey);
+        const idx = (keyIndex + ki) % keys.length;
+        const genAI = new GoogleGenerativeAI(keys[idx]);
 
-        for (const modelName of MODEL_CHAIN) {
+        for (const modelName of GEMINI_MODELS) {
             try {
                 const model = genAI.getGenerativeModel({ model: modelName });
                 const result = await model.generateContent(prompt);
                 const text = result.response.text().trim();
                 if (text) {
-                    // Rotate to next key for next request (spread load)
-                    keyIndex = (currentKeyIdx + 1) % keys.length;
+                    keyIndex = (idx + 1) % keys.length;
+                    console.log(`[AI] ✓ Gemini key${idx + 1}/${modelName}`);
                     return text;
                 }
             } catch (err: any) {
                 const msg = err?.message || '';
-                errors.push(`[key${currentKeyIdx + 1}/${modelName}]: ${msg.substring(0, 80)}`);
-                // If 429 (rate limit), try next key/model immediately
+                console.log(`[AI] ✗ key${idx + 1}/${modelName}: ${msg.substring(0, 60)}`);
                 if (err?.status === 429 || msg.includes('429')) continue;
-                // If other error (invalid key etc), try next key
                 if (err?.status === 403 || err?.status === 400) break;
-                // Unknown error, try next
                 continue;
             }
         }
     }
+    return null;
+}
 
-    // All keys and models exhausted — last resort: wait and retry once
-    await new Promise(r => setTimeout(r, 16000));
-    const fallbackKey = keys[keyIndex % keys.length];
-    const genAI = new GoogleGenerativeAI(fallbackKey);
-    const model = genAI.getGenerativeModel({ model: MODEL_CHAIN[MODEL_CHAIN.length - 1] });
-    const result = await model.generateContent(prompt);
-    return result.response.text().trim();
+// ─── Provider 2: OpenRouter (free models) ─────────────────
+async function tryOpenRouter(prompt: string): Promise<string | null> {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) return null;
+
+    const FREE_MODELS = [
+        'google/gemini-2.0-flash-exp:free',
+        'meta-llama/llama-4-maverick:free',
+        'deepseek/deepseek-chat-v3-0324:free',
+    ];
+
+    for (const model of FREE_MODELS) {
+        try {
+            const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': process.env.BETTER_AUTH_URL || 'https://raportk.app',
+                },
+                body: JSON.stringify({
+                    model,
+                    messages: [{ role: 'user', content: prompt }],
+                    max_tokens: 500,
+                }),
+            });
+            if (!resp.ok) continue;
+            const data = await resp.json() as any;
+            const text = data.choices?.[0]?.message?.content?.trim();
+            if (text) {
+                console.log(`[AI] ✓ OpenRouter/${model}`);
+                return text;
+            }
+        } catch {
+            continue;
+        }
+    }
+    return null;
+}
+
+// ─── Provider 3: Offline Template Engine (NEVER fails) ────
+function generateOffline(category: string, keywords: string, studentName: string): string {
+    const name = studentName || 'Anak';
+    const kw = keywords.split(',').map(k => k.trim()).filter(Boolean);
+
+    const templates: Record<string, string[]> = {
+        'Nilai Agama dan Budi Pekerti': [
+            `${name} menunjukkan perkembangan yang baik dalam aspek nilai agama dan budi pekerti.`,
+            `${name} mampu ${kw[0] || 'mengenal nilai-nilai kebaikan'} dengan antusias.`,
+            kw[1] ? `Dalam kegiatan sehari-hari, ${name} juga menunjukkan kemampuan ${kw[1]}.` : `${name} mulai terbiasa menerapkan sikap sopan dan santun kepada teman dan guru.`,
+            `Semangat ${name} dalam mengikuti kegiatan keagamaan patut diapresiasi.`,
+        ],
+        'Jati Diri': [
+            `${name} menunjukkan perkembangan jati diri yang positif selama periode ini.`,
+            `${name} mampu ${kw[0] || 'mengenal dirinya sendiri'} dengan percaya diri.`,
+            kw[1] ? `${name} juga menunjukkan kemampuan ${kw[1]} dengan baik.` : `${name} mulai menunjukkan kemandirian dalam menyelesaikan tugas-tugasnya.`,
+            `Kepercayaan diri ${name} semakin berkembang dan patut diapresiasi.`,
+        ],
+        'Dasar Literasi dan STEAM': [
+            `${name} menunjukkan kemajuan yang menggembirakan dalam aspek literasi dan STEAM.`,
+            `${name} mampu ${kw[0] || 'mengenal huruf dan angka'} dengan baik.`,
+            kw[1] ? `Dalam kegiatan eksplorasi, ${name} menunjukkan kemampuan ${kw[1]}.` : `${name} menunjukkan rasa ingin tahu yang tinggi terhadap lingkungan sekitarnya.`,
+            `Kreativitas dan semangat belajar ${name} terus berkembang dengan positif.`,
+        ],
+    };
+
+    // Find best matching template or use generic
+    const key = Object.keys(templates).find(k => category.toLowerCase().includes(k.toLowerCase().split(' ')[0]));
+    const lines = templates[key || 'Jati Diri'] || templates['Jati Diri'];
+
+    // Add remaining keywords naturally
+    const extra = kw.slice(2).map(k => `${name} juga menunjukkan perkembangan dalam hal ${k}.`);
+    const result = [...lines, ...extra.slice(0, 2)];
+
+    return result.join(' ');
+}
+
+// ─── Smart Generate: Gemini → OpenRouter → Offline ────────
+async function smartGenerate(prompt: string, category: string, keywords: string, studentName: string): Promise<{ text: string; source: string }> {
+    // Try Gemini (5 keys × 2 models = 10 attempts)
+    const geminiResult = await tryGemini(prompt);
+    if (geminiResult) return { text: geminiResult, source: 'gemini' };
+
+    // Try OpenRouter (3 free models)
+    const openRouterResult = await tryOpenRouter(prompt);
+    if (openRouterResult) return { text: openRouterResult, source: 'openrouter' };
+
+    // Last resort: offline template (NEVER fails)
+    console.log('[AI] ⚠ All providers failed, using offline template');
+    const offlineResult = generateOffline(category, keywords, studentName);
+    return { text: offlineResult, source: 'offline' };
 }
 
 // ─── Generate Narasi ─────────────────────────────────────
@@ -89,10 +166,9 @@ router.post('/generate', async (req, res) => {
         return res.status(400).json({ error: 'Keywords and category are required' });
     }
 
-    // Cache key based on inputs
     const cacheKey = `gen:${category}:${keywords}:${studentName || ''}:${tone || ''}`;
     const cached = getCached(cacheKey);
-    if (cached) return res.json({ text: cached, fromCache: true });
+    if (cached) return res.json({ text: cached, source: 'cache' });
 
     const prompt = `Kamu adalah guru TK/PAUD berpengalaman di Indonesia. Buatkan narasi capaian pembelajaran untuk laporan raport anak usia dini (Kurikulum Merdeka).
 
@@ -110,15 +186,14 @@ Aturan:
 - Jangan tambahkan pengantar atau penutup, langsung narasi saja`;
 
     try {
-        const text = await smartGenerate(prompt);
+        const { text, source } = await smartGenerate(prompt, category, keywords, studentName || '');
         setCache(cacheKey, text);
-        res.json({ text });
+        res.json({ text, source });
     } catch (error: any) {
         console.error('AI generation error:', error?.message);
-        if (error?.message?.includes('API_KEY') || error?.message?.includes('not configured')) {
-            return res.status(500).json({ error: 'Gemini API key belum dikonfigurasi. Tambahkan GEMINI_API_KEY di file .env' });
-        }
-        res.status(500).json({ error: 'Semua API key dan model kehabisan kuota. Coba lagi nanti atau tambahkan API key baru di GEMINI_API_KEY (pisahkan dengan koma).' });
+        // Even if something unexpected happens, offline NEVER fails
+        const text = generateOffline(category, keywords, studentName || '');
+        res.json({ text, source: 'offline' });
     }
 });
 
@@ -134,7 +209,7 @@ router.post('/variations', async (req, res) => {
     const cached = getCached(cacheKey);
     if (cached) {
         const variations = cached.split('---').map((v: string) => v.trim()).filter((v: string) => v.length > 20);
-        return res.json({ variations, fromCache: true });
+        return res.json({ variations, source: 'cache' });
     }
 
     const prompt = `Kamu adalah guru TK/PAUD berpengalaman. Berikut adalah narasi raport yang sudah ada:
@@ -151,13 +226,13 @@ Aturan:
 - Langsung tulis narasi, tanpa nomor atau label`;
 
     try {
-        const raw = await smartGenerate(prompt);
+        const { text: raw, source } = await smartGenerate(prompt, category || '', '', '');
         setCache(cacheKey, raw);
         const variations = raw.split('---').map((v: string) => v.trim()).filter((v: string) => v.length > 20);
-        res.json({ variations });
+        res.json({ variations, source });
     } catch (error: any) {
         console.error('AI variations error:', error?.message);
-        res.status(500).json({ error: 'Semua API key kehabisan kuota. Coba lagi nanti.' });
+        res.status(500).json({ error: 'Gagal generate variasi' });
     }
 });
 
