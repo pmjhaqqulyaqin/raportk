@@ -83,19 +83,19 @@ function ChatBox({ npsn, compact = false, currentUserId }) {
       return (
         <div className="flex flex-col h-[280px]">
           {/* Tabs: Group + DM contacts */}
-          <div className="flex gap-1 py-2 overflow-x-auto scrollbar-hide">
-            <button onClick={() => setActiveChat('group')} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-primary/20 text-primary border border-primary/30 whitespace-nowrap shrink-0">
-              <span className="material-symbols-outlined text-xs">groups</span>Grup
+          <div className="flex gap-1.5 py-2 overflow-x-auto scrollbar-hide">
+            <button onClick={() => setActiveChat('group')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-white/15 text-white border border-white/20 whitespace-nowrap shrink-0">
+              <span className="material-symbols-outlined text-sm">groups</span>Grup
             </button>
             {convoList.slice(0, 5).map(c => (
-              <button key={c.id} onClick={() => setActiveChat(c.id)} className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white/5 text-slate-400 hover:bg-white/10 whitespace-nowrap shrink-0">
+              <button key={c.id} onClick={() => setActiveChat(c.id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-white/10 text-white/80 hover:bg-white/15 whitespace-nowrap shrink-0">
                 {c.name?.split(' ')[0]}
-                {c.lastMessage && <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>}
+                {c.lastMessage && <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>}
               </button>
             ))}
           </div>
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-[10px] text-slate-500">Pilih Grup atau nama guru untuk chat</p>
+            <p className="text-[11px] text-white/60 font-medium">Pilih Grup atau nama guru untuk chat</p>
           </div>
         </div>
       );
@@ -118,15 +118,15 @@ function ChatBox({ npsn, compact = false, currentUserId }) {
         </div>
         {/* Messages */}
         <div className="flex-1 overflow-y-auto space-y-1 scrollbar-hide">
-          {displayMessages.length === 0 && <p className="text-[10px] text-slate-500 text-center py-4">Belum ada pesan</p>}
+          {displayMessages.length === 0 && <p className="text-[11px] text-white/50 text-center py-4">Belum ada pesan</p>}
           {displayMessages.map(m => {
             const isMe = m.senderId === currentUserId;
             return (
               <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] px-2.5 py-1.5 ${isMe ? 'bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl rounded-tr-sm' : 'bg-white/[0.06] border border-white/[0.08] rounded-xl rounded-tl-sm'}`}>
+                <div className={`max-w-[85%] px-2.5 py-1.5 ${isMe ? 'bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl rounded-tr-sm' : 'bg-white/10 border border-white/15 rounded-xl rounded-tl-sm'}`}>
                   {!isMe && activeChat === 'group' && <span className="text-[9px] font-bold mr-1" style={{ color: getColor(m.senderName) }}>{m.senderName}:</span>}
-                  <span className={`text-[11px] ${isMe ? 'text-white' : 'text-slate-300'}`}>{m.message}</span>
-                  <span className={`text-[8px] ml-1.5 ${isMe ? 'text-blue-200/50' : 'text-slate-600'}`}>{formatTime(m.createdAt)}</span>
+                  <span className={`text-[11px] ${isMe ? 'text-white' : 'text-white/90'}`}>{m.message}</span>
+                  <span className={`text-[8px] ml-1.5 ${isMe ? 'text-blue-200/70' : 'text-white/40'}`}>{formatTime(m.createdAt)}</span>
                 </div>
               </div>
             );
@@ -214,9 +214,9 @@ function ChatBox({ npsn, compact = false, currentUserId }) {
             <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
               <div className="max-w-[80%]">
                 {!isMe && activeChat === 'group' && <p className="text-[10px] font-bold mb-0.5 ml-1" style={{ color: getColor(m.senderName) }}>{m.senderName}</p>}
-                <div className={`px-3 py-2 ${isMe ? 'bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl rounded-tr-sm' : 'bg-white/[0.06] border border-white/[0.08] rounded-2xl rounded-tl-sm'}`}>
-                  <span className={`text-[12px] leading-relaxed ${isMe ? 'text-white' : 'text-slate-300'}`}>{m.message}</span>
-                  <span className={`text-[9px] ml-2 ${isMe ? 'text-blue-200/60' : 'text-slate-500'}`}>{formatTime(m.createdAt)}</span>
+                <div className={`px-3 py-2 ${isMe ? 'bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl rounded-tr-sm' : 'bg-white/10 border border-white/15 rounded-2xl rounded-tl-sm'}`}>
+                  <span className={`text-[12px] leading-relaxed ${isMe ? 'text-white' : 'text-white/90'}`}>{m.message}</span>
+                  <span className={`text-[9px] ml-2 ${isMe ? 'text-blue-200/70' : 'text-white/40'}`}>{formatTime(m.createdAt)}</span>
                 </div>
               </div>
             </div>
