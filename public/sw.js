@@ -121,17 +121,22 @@ self.addEventListener('push', (event) => {
 // ─── Notification Click ──────────────────────────────────
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || '/school-hub';
+  const targetPath = event.notification.data?.url || '/';
+  const urlToOpen = new URL(targetPath, self.location.origin).href;
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Focus existing window if available
+      // 1. Try to focus any existing app window and navigate it
       for (const client of clientList) {
-        if (client.url.includes(url) && 'focus' in client) {
-          return client.focus();
+        if (client.url.startsWith(self.location.origin) && 'focus' in client) {
+          client.focus();
+          // Navigate SPA to target page
+          client.postMessage({ type: 'NAVIGATE', url: targetPath });
+          return client;
         }
       }
-      // Otherwise open new window
-      if (clients.openWindow) return clients.openWindow(url);
+      // 2. No existing window — open fresh
+      return clients.openWindow(urlToOpen);
     })
   );
 });

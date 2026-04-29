@@ -15,9 +15,15 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js')
       .then(reg => {
         console.log('[SW] Registered:', reg.scope);
-        // Check for updates every 60 minutes
         setInterval(() => reg.update(), 60 * 60 * 1000);
       })
       .catch(err => console.error('[SW] Registration failed:', err));
+  });
+
+  // Listen for navigation commands from notification clicks
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data?.type === 'NAVIGATE' && event.data.url) {
+      window.location.href = event.data.url;
+    }
   });
 }

@@ -169,7 +169,7 @@ router.post('/:npsn', async (req, res) => {
             title: recipientId ? senderName : `${senderName} (Grup)`,
             body: message.trim().substring(0, 100),
             tag: recipientId ? `dm-${userId}` : `group-${npsn}`,
-            url: '/school-hub',
+            url: '/',
         };
 
         if (recipientId) {
