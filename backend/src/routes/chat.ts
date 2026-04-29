@@ -126,11 +126,11 @@ router.get('/:npsn/conversations', async (req, res) => {
 // POST /api/chat/:npsn — Send message (group or DM)
 router.post('/:npsn', validateBody(chatSendSchema), async (req, res) => {
     const userId = (req as any).user.id;
-    const { npsn } = req.params;
+    const npsn = req.params.npsn as string;
     const { message, replyTo, recipientId } = req.body;
 
     try {
-        const ctx = await getSchoolCtx(userId, npsn);
+        const ctx = await getSchoolCtx(userId, npsn as string);
         if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
 
         const sender = await db.select({ name: user.name, image: user.image }).from(user).where(eq(user.id, userId));
@@ -186,14 +186,15 @@ router.post('/:npsn', validateBody(chatSendSchema), async (req, res) => {
 // PUT /api/chat/:npsn/:messageId — Edit own message
 router.put('/:npsn/:messageId', validateBody(chatEditSchema), async (req, res) => {
     const userId = (req as any).user.id;
-    const { npsn, messageId } = req.params;
+    const npsn = req.params.npsn as string;
+    const messageId = req.params.messageId as string;
     const { message } = req.body;
 
     try {
-        const ctx = await getSchoolCtx(userId, npsn);
+        const ctx = await getSchoolCtx(userId, npsn as string);
         if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
 
-        const msg = await db.select().from(chatMessages).where(eq(chatMessages.id, messageId));
+        const msg = await db.select().from(chatMessages).where(eq(chatMessages.id, messageId as string));
         if (msg.length === 0) return res.status(404).json({ error: 'Pesan tidak ditemukan' });
 
         if (msg[0].senderId !== userId) {
@@ -212,21 +213,22 @@ router.put('/:npsn/:messageId', validateBody(chatEditSchema), async (req, res) =
 // DELETE /api/chat/:npsn/:messageId
 router.delete('/:npsn/:messageId', async (req, res) => {
     const userId = (req as any).user.id;
-    const { npsn, messageId } = req.params;
+    const npsn = req.params.npsn as string;
+    const messageId = req.params.messageId as string;
 
     try {
-        const ctx = await getSchoolCtx(userId, npsn);
+        const ctx = await getSchoolCtx(userId, npsn as string);
         if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
 
-        const msg = await db.select().from(chatMessages).where(eq(chatMessages.id, messageId));
+        const msg = await db.select().from(chatMessages).where(eq(chatMessages.id, messageId as string));
         if (msg.length === 0) return res.status(404).json({ error: 'Pesan tidak ditemukan' });
 
         if (msg[0].senderId !== userId && ctx.member.role !== 'admin') {
             return res.status(403).json({ error: 'Hanya pengirim atau admin yang bisa menghapus' });
         }
 
-        await db.delete(chatMessages).where(eq(chatMessages.id, messageId));
-        broadcast(npsn, 'chat_delete', { messageId });
+        await db.delete(chatMessages).where(eq(chatMessages.id, messageId as string));
+        broadcast(npsn as string, 'chat_delete', { messageId });
         res.json({ success: true });
     } catch (error) {
         console.error('Delete chat error:', error);

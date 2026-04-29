@@ -3,6 +3,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import * as dotenv from 'dotenv';
 import path from 'path';
+import { log } from './lib/logger';
 import { auth } from './lib/auth';
 import { toNodeHandler } from "better-auth/node";
 
@@ -116,5 +117,5 @@ if (isProduction) {
 }
 
 app.listen(port, () => {
-  console.log(`Backend server listening on port ${port} (${isProduction ? 'production' : 'development'})`);
+  log.info('Server', `Listening on port ${port} (${isProduction ? 'production' : 'development'})`);
 });
