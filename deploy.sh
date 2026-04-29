@@ -40,27 +40,28 @@ sleep 10
 echo ""
 echo "📊 [4/5] Running database migrations..."
 
-# Try drizzle-kit push first
-if docker exec raportk-app npx drizzle-kit push --config=drizzle.config.ts 2>&1; then
-    echo "    ✓ Drizzle migrations applied"
-else
-    echo "    ⚠ Drizzle-kit unavailable, applying SQL migrations directly..."
-    
-    # Get DB credentials from the .env.production file
-    DB_USER=$(grep -E '^POSTGRES_USER=' "$APP_DIR/.env.production" | cut -d'=' -f2)
-    DB_NAME=$(grep -E '^POSTGRES_DB=' "$APP_DIR/.env.production" | cut -d'=' -f2)
-    DB_USER=${DB_USER:-raportk_user}
-    DB_NAME=${DB_NAME:-raportk}
+# Get DB credentials from the .env.production file
+DB_USER=$(grep -E '^POSTGRES_USER=' "$APP_DIR/.env.production" | cut -d'=' -f2)
+DB_NAME=$(grep -E '^POSTGRES_DB=' "$APP_DIR/.env.production" | cut -d'=' -f2)
+DB_USER=${DB_USER:-raportk_user}
+DB_NAME=${DB_NAME:-raportk}
 
-    # SQL migrations — add new columns/tables here as needed
+# 4a. Schema migrations (drizzle-kit or raw SQL fallback)
+if docker exec raportk-app npx drizzle-kit push --config=drizzle.config.ts 2>&1; then
+    echo "    ✓ Drizzle schema migrations applied"
+else
+    echo "    ⚠ Drizzle-kit failed, applying schema SQL directly..."
     docker exec raportk-db psql -U "$DB_USER" -d "$DB_NAME" -c "
-        -- v1.1: Add NPSN column to school_info
         ALTER TABLE school_info ADD COLUMN IF NOT EXISTS npsn TEXT;
-        
-        -- v1.2: Fix corrupted base64 image data in user table (causes session hang)
-        UPDATE \"user\" SET image = NULL WHERE image LIKE 'data:%' OR image LIKE 'blob:%' OR length(image) > 500;
-    " 2>&1 && echo "    ✓ SQL migrations applied" || echo "    ⚠ SQL migration warning (tables may not exist yet on first run)"
+    " 2>&1 && echo "    ✓ Schema SQL applied" || echo "    ⚠ Schema SQL warning"
 fi
+
+# 4b. Data fixes — ALWAYS run (safe & idempotent)
+echo "    🔧 Running data fixes..."
+docker exec raportk-db psql -U "$DB_USER" -d "$DB_NAME" -c "
+    -- Fix corrupted base64/blob image data in user table (causes session hang)
+    UPDATE \"user\" SET image = NULL WHERE image LIKE 'data:%' OR image LIKE 'blob:%' OR length(image) > 500;
+" 2>&1 && echo "    ✓ Data fixes applied" || echo "    ⚠ Data fix warning"
 
 echo "    ✓ Migrations complete"
 
