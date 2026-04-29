@@ -8,9 +8,10 @@ const getColor = (name) => nameColors[(name||'').split('').reduce((a,c) => a+c.c
 function ChatBox({ npsn, compact = false, currentUserId }) {
   const [activeChat, setActiveChat] = useState(null);
   const [text, setText] = useState('');
-  const [actionMsg, setActionMsg] = useState(null); // { id, message } — message being acted on
-  const [editMode, setEditMode] = useState(null); // { id, text } — message being edited
+  const [actionMsg, setActionMsg] = useState(null);
+  const [editMode, setEditMode] = useState(null);
   const chatEndRef = useRef(null);
+  const inputRef = useRef(null);
   const prevLenRef = useRef(0);
   const queryClient = useQueryClient();
 
@@ -42,6 +43,11 @@ function ChatBox({ npsn, compact = false, currentUserId }) {
     prevLenRef.current = len;
   }, [messages]);
 
+  // Focus input when entering edit mode
+  useEffect(() => {
+    if (editMode) inputRef.current?.focus();
+  }, [editMode]);
+
   const handleSend = () => {
     if (editMode) {
       const msg = editMode.text.trim();
@@ -70,10 +76,7 @@ function ChatBox({ npsn, compact = false, currentUserId }) {
     setActionMsg(null);
   };
 
-  const cancelEdit = () => {
-    setEditMode(null);
-    setText('');
-  };
+  const cancelEdit = () => { setEditMode(null); setText(''); };
 
   const formatTime = (d) => new Date(d).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
   const formatAgo = (d) => {
@@ -95,114 +98,104 @@ function ChatBox({ npsn, compact = false, currentUserId }) {
     return 0;
   });
 
-  // --- Action popup (shared) ---
-  const ActionPopup = ({ msg, onClose }) => (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative bg-slate-900 border border-white/10 rounded-t-2xl w-full max-w-sm p-4 pb-6 space-y-1 animate-slide-up" onClick={e => e.stopPropagation()}>
-        {/* Preview */}
-        <div className="bg-white/5 rounded-xl px-3 py-2 mb-3">
-          <p className="text-xs text-white/70 line-clamp-2">{msg.message}</p>
-        </div>
-        <button onClick={() => handleEdit(msg)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left">
-          <span className="material-symbols-outlined text-blue-400 text-lg">edit</span>
-          <span className="text-sm text-white font-medium">Edit Pesan</span>
-        </button>
-        <button onClick={() => handleDelete(msg.id)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left">
-          <span className="material-symbols-outlined text-red-400 text-lg">delete</span>
-          <span className="text-sm text-red-400 font-medium">Hapus Pesan</span>
-        </button>
-        <button onClick={onClose} className="w-full text-center py-2 text-xs text-white/40 font-medium mt-2">Batal</button>
-      </div>
-    </div>
-  );
-
-  // --- Message bubble (shared) ---
-  const Bubble = ({ m, isCompact }) => {
-    const isMe = m.senderId === currentUserId;
-    return (
-      <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-        <div className={isCompact ? 'max-w-[85%]' : 'max-w-[80%]'}>
-          {!isMe && !isCompact && activeChat === 'group' && <p className="text-[10px] font-bold mb-0.5 ml-1" style={{ color: getColor(m.senderName) }}>{m.senderName}</p>}
-          <div
-            className={`${isCompact ? 'px-2.5 py-1.5' : 'px-3 py-2'} ${isMe
-              ? 'bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl rounded-tr-sm'
-              : 'bg-white/10 border border-white/15 rounded-2xl rounded-tl-sm'
-            } ${isMe ? 'active:scale-[0.97] transition-transform cursor-pointer' : ''}`}
-            onClick={() => isMe && setActionMsg(m)}
-          >
-            {!isMe && isCompact && activeChat === 'group' && <span className="text-[9px] font-bold mr-1" style={{ color: getColor(m.senderName) }}>{m.senderName}:</span>}
-            <span className={`${isCompact ? 'text-[11px]' : 'text-[12px] leading-relaxed'} ${isMe ? 'text-white' : 'text-white/90'}`}>{m.message}</span>
-            <span className={`${isCompact ? 'text-[8px] ml-1.5' : 'text-[9px] ml-2'} ${isMe ? 'text-blue-200/70' : 'text-white/40'}`}>{formatTime(m.createdAt)}</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // --- Input bar (shared) ---
-  const InputBar = ({ isCompact }) => (
-    <div className={`flex items-center gap-${isCompact ? '1.5' : '2'} pt-${isCompact ? '1.5' : '2'} border-t border-white/5`}>
-      {editMode && (
-        <button onClick={cancelEdit} className="text-yellow-400 shrink-0"><span className="material-symbols-outlined text-sm">close</span></button>
-      )}
-      <input type="text" value={editMode ? editMode.text : text}
-        onChange={e => editMode ? setEditMode({...editMode, text: e.target.value}) : setText(e.target.value)}
-        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }}}
-        placeholder={editMode ? 'Edit pesan...' : 'Ketik pesan...'}
-        maxLength={1000}
-        className={`flex-1 ${editMode ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-black/30 border-white/10'} border ${isCompact ? 'rounded-lg px-2.5 py-1.5 text-[11px]' : 'rounded-xl px-4 py-3 text-xs'} text-white focus:outline-none focus:ring-1 focus:ring-primary placeholder-slate-500`}
-      />
-      <button onClick={handleSend} disabled={isPending || !(editMode ? editMode.text.trim() : text.trim())}
-        className={`${isCompact ? 'w-7 h-7 rounded-lg' : 'w-10 h-10 rounded-xl'} ${editMode ? 'bg-gradient-to-r from-yellow-500 to-amber-500' : 'bg-gradient-to-r from-blue-600 to-blue-500'} text-white flex items-center justify-center disabled:opacity-30 shrink-0`}>
-        <span className="material-symbols-outlined text-xs">{editMode ? 'check' : 'send'}</span>
-      </button>
-    </div>
-  );
+  const inputValue = editMode ? editMode.text : text;
+  const onInputChange = (e) => editMode ? setEditMode({...editMode, text: e.target.value}) : setText(e.target.value);
+  const onKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }};
+  const canSend = editMode ? editMode.text.trim() : text.trim();
 
   // === COMPACT MODE ===
   if (compact) {
     if (!activeChat) {
       return (
-        <div className="flex flex-col h-[280px]">
+        <div className="flex flex-col" style={{ height: 400 }}>
           <div className="flex gap-1.5 py-2 overflow-x-auto scrollbar-hide">
-            <button onClick={() => setActiveChat('group')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-white/15 text-white border border-white/20 whitespace-nowrap shrink-0">
-              <span className="material-symbols-outlined text-sm">groups</span>Grup
+            <button onClick={() => setActiveChat('group')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold bg-white/15 text-white border border-white/20 whitespace-nowrap shrink-0">
+              <span className="material-symbols-outlined text-base">groups</span>Grup
             </button>
             {convoList.slice(0, 5).map(c => (
-              <button key={c.id} onClick={() => setActiveChat(c.id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-white/10 text-white/80 hover:bg-white/15 whitespace-nowrap shrink-0">
+              <button key={c.id} onClick={() => setActiveChat(c.id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold bg-white/10 text-white/80 hover:bg-white/15 whitespace-nowrap shrink-0">
                 {c.name?.split(' ')[0]}
                 {c.lastMessage && <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>}
               </button>
             ))}
           </div>
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-[11px] text-white/60 font-medium">Pilih Grup atau nama guru untuk chat</p>
+            <p className="text-[12px] text-white/60 font-medium">Pilih Grup atau nama guru untuk chat</p>
           </div>
         </div>
       );
     }
-    const displayMessages = (messages || []).slice(-5);
+    const displayMessages = (messages || []).slice(-6);
     return (
-      <div className="flex flex-col h-[280px]">
+      <div className="flex flex-col" style={{ height: 400 }}>
+        {/* Header */}
         <div className="flex items-center gap-2 py-1.5">
           <button onClick={() => { setActiveChat(null); cancelEdit(); }} className="text-slate-400 hover:text-white">
-            <span className="material-symbols-outlined text-sm">arrow_back</span>
+            <span className="material-symbols-outlined text-base">arrow_back</span>
           </button>
           <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black text-white shrink-0 ${activeChat === 'group' ? 'bg-gradient-to-br from-violet-500 to-fuchsia-600' : ''}`} style={activeChat !== 'group' ? { background: getColor(dmPartner?.userName || '') } : {}}>
-              {activeChat === 'group' ? <span className="material-symbols-outlined text-xs">groups</span> : (dmPartner?.userName?.charAt(0)?.toUpperCase() || '?')}
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black text-white shrink-0 ${activeChat === 'group' ? 'bg-gradient-to-br from-violet-500 to-fuchsia-600' : ''}`} style={activeChat !== 'group' ? { background: getColor(dmPartner?.userName || '') } : {}}>
+              {activeChat === 'group' ? <span className="material-symbols-outlined text-sm">groups</span> : (dmPartner?.userName?.charAt(0)?.toUpperCase() || '?')}
             </div>
-            <span className="text-[10px] font-bold text-white truncate">{activeChat === 'group' ? 'Grup Sekolah' : dmPartner?.userName || 'Chat'}</span>
+            <span className="text-[12px] font-bold text-white truncate">{activeChat === 'group' ? 'Grup Sekolah' : dmPartner?.userName || 'Chat'}</span>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto space-y-1 scrollbar-hide">
-          {displayMessages.length === 0 && <p className="text-[11px] text-white/50 text-center py-4">Belum ada pesan</p>}
-          {displayMessages.map(m => <Bubble key={m.id} m={m} isCompact />)}
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto space-y-1.5 scrollbar-hide py-1">
+          {displayMessages.length === 0 && <p className="text-[12px] text-white/50 text-center py-4">Belum ada pesan</p>}
+          {displayMessages.map(m => {
+            const isMe = m.senderId === currentUserId;
+            return (
+              <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[85%] px-3 py-2 ${isMe ? 'bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl rounded-tr-sm active:scale-[0.97] transition-transform cursor-pointer' : 'bg-white/10 border border-white/15 rounded-xl rounded-tl-sm'}`}
+                  onClick={() => isMe && setActionMsg(m)}>
+                  {!isMe && activeChat === 'group' && <span className="text-[11px] font-bold mr-1" style={{ color: getColor(m.senderName) }}>{m.senderName}:</span>}
+                  <span className={`text-[13px] ${isMe ? 'text-white' : 'text-white/90'}`}>{m.message}</span>
+                  <span className={`text-[10px] ml-1.5 ${isMe ? 'text-blue-200/70' : 'text-white/40'}`}>{formatTime(m.createdAt)}</span>
+                </div>
+              </div>
+            );
+          })}
           <div ref={chatEndRef} />
         </div>
-        <InputBar isCompact />
-        {actionMsg && <ActionPopup msg={actionMsg} onClose={() => setActionMsg(null)} />}
+        {/* Edit banner */}
+        {editMode && (
+          <div className="flex items-center gap-2 px-2 py-1 bg-yellow-500/10 border-l-2 border-yellow-500 rounded-r-lg mb-1">
+            <span className="material-symbols-outlined text-yellow-400 text-sm">edit</span>
+            <p className="text-[11px] text-yellow-300 flex-1 truncate">Mengedit pesan</p>
+            <button onClick={cancelEdit}><span className="material-symbols-outlined text-white/40 text-sm">close</span></button>
+          </div>
+        )}
+        {/* Input */}
+        <div className="flex items-center gap-2 pt-1.5 border-t border-white/5">
+          <input ref={inputRef} type="text" value={inputValue} onChange={onInputChange} onKeyDown={onKeyDown}
+            placeholder={editMode ? 'Edit pesan...' : 'Ketik pesan...'} maxLength={1000}
+            className={`flex-1 ${editMode ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-black/30 border-white/10'} border rounded-lg px-3 py-2 text-[13px] text-white focus:outline-none focus:ring-1 focus:ring-primary placeholder-slate-500`} />
+          <button onClick={handleSend} disabled={isPending || !canSend}
+            className={`w-8 h-8 ${editMode ? 'bg-gradient-to-r from-yellow-500 to-amber-500' : 'bg-gradient-to-r from-blue-600 to-blue-500'} text-white flex items-center justify-center rounded-lg disabled:opacity-30 shrink-0`}>
+            <span className="material-symbols-outlined text-sm">{editMode ? 'check' : 'send'}</span>
+          </button>
+        </div>
+        {/* Action popup */}
+        {actionMsg && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setActionMsg(null)}>
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+            <div className="relative bg-slate-900 border border-white/10 rounded-t-2xl w-full max-w-sm p-4 pb-6 space-y-1 animate-slide-up" onClick={e => e.stopPropagation()}>
+              <div className="bg-white/5 rounded-xl px-3 py-2 mb-3">
+                <p className="text-xs text-white/70 line-clamp-2">{actionMsg.message}</p>
+              </div>
+              <button onClick={() => handleEdit(actionMsg)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left">
+                <span className="material-symbols-outlined text-blue-400 text-lg">edit</span>
+                <span className="text-sm text-white font-medium">Edit Pesan</span>
+              </button>
+              <button onClick={() => handleDelete(actionMsg.id)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left">
+                <span className="material-symbols-outlined text-red-400 text-lg">delete</span>
+                <span className="text-sm text-red-400 font-medium">Hapus Pesan</span>
+              </button>
+              <button onClick={() => setActionMsg(null)} className="w-full text-center py-2 text-xs text-white/40 font-medium mt-2">Batal</button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -216,32 +209,34 @@ function ChatBox({ npsn, compact = false, currentUserId }) {
             <span className="material-symbols-outlined text-lg">groups</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h5 className="text-xs font-bold text-white">Grup Sekolah</h5>
-            <p className="text-[10px] text-slate-500 truncate">Pesan ke semua anggota</p>
+            <h5 className="text-sm font-bold text-white">Grup Sekolah</h5>
+            <p className="text-[11px] text-slate-500 truncate">Pesan ke semua anggota</p>
           </div>
           <span className="material-symbols-outlined text-sm text-slate-500">chevron_right</span>
         </button>
         <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Pesan Langsung</h5>
-        {convoList.length === 0 && <p className="text-xs text-slate-500 text-center py-4">Belum ada anggota lain.</p>}
+        {convoList.length === 0 && <p className="text-sm text-slate-500 text-center py-4">Belum ada anggota lain.</p>}
         {convoList.map(c => (
           <button key={c.id} onClick={() => setActiveChat(c.id)} className="w-full flex items-center gap-3 bg-black/20 rounded-xl p-3 hover:bg-black/30 transition-all text-left">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-black shrink-0" style={{ background: getColor(c.name) }}>
               {c.name?.charAt(0)?.toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <h5 className="text-xs font-bold text-white">{c.name}</h5>
-              {c.lastMessage ? <p className="text-[10px] text-slate-500 truncate">{c.lastMessage}</p> : <p className="text-[10px] text-slate-600 italic">Belum ada pesan</p>}
+              <h5 className="text-sm font-bold text-white">{c.name}</h5>
+              {c.lastMessage ? <p className="text-[11px] text-slate-500 truncate">{c.lastMessage}</p> : <p className="text-[11px] text-slate-600 italic">Belum ada pesan</p>}
             </div>
-            {c.lastAt && <span className="text-[9px] text-slate-600 shrink-0">{formatAgo(c.lastAt)}</span>}
+            {c.lastAt && <span className="text-[10px] text-slate-600 shrink-0">{formatAgo(c.lastAt)}</span>}
           </button>
         ))}
       </div>
     );
   }
 
+  // Chat view (group or DM)
   const displayMessages = messages || [];
   return (
-    <div className="flex flex-col h-[calc(100vh-240px)] max-h-[550px]">
+    <div className="flex flex-col h-[calc(100vh-200px)] max-h-[700px]">
+      {/* Header */}
       <div className="flex items-center gap-3 pb-3 border-b border-white/5">
         <button onClick={() => { setActiveChat(null); cancelEdit(); }} className="text-slate-400 hover:text-white"><span className="material-symbols-outlined text-lg">arrow_back</span></button>
         <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-black shrink-0 ${activeChat === 'group' ? 'bg-gradient-to-br from-violet-500 to-fuchsia-600' : ''}`} style={activeChat !== 'group' ? { background: getColor(dmPartner?.userName || '') } : {}}>
@@ -249,29 +244,73 @@ function ChatBox({ npsn, compact = false, currentUserId }) {
         </div>
         <div className="flex-1 min-w-0">
           <h5 className="text-sm font-bold text-white">{activeChat === 'group' ? 'Grup Sekolah' : dmPartner?.userName || 'Chat'}</h5>
-          <p className="text-[10px] text-slate-500">{activeChat === 'group' ? `${members?.length || 0} anggota` : 'Pesan langsung'}</p>
+          <p className="text-[11px] text-slate-500">{activeChat === 'group' ? `${members?.length || 0} anggota` : 'Pesan langsung'}</p>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto space-y-1.5 py-3 scrollbar-hide">
-        {isLoading && <p className="text-xs text-slate-500 text-center py-4">Memuat...</p>}
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto space-y-2 py-3 scrollbar-hide">
+        {isLoading && <p className="text-sm text-slate-500 text-center py-4">Memuat...</p>}
         {!isLoading && displayMessages.length === 0 && (
           <div className="text-center py-8">
             <span className="material-symbols-outlined text-3xl text-slate-600">chat_bubble</span>
-            <p className="text-xs text-slate-500 mt-2">Mulai percakapan!</p>
+            <p className="text-sm text-slate-500 mt-2">Mulai percakapan!</p>
           </div>
         )}
-        {displayMessages.map(m => <Bubble key={m.id} m={m} isCompact={false} />)}
+        {displayMessages.map(m => {
+          const isMe = m.senderId === currentUserId;
+          return (
+            <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+              <div className="max-w-[80%]">
+                {!isMe && activeChat === 'group' && <p className="text-[11px] font-bold mb-0.5 ml-1" style={{ color: getColor(m.senderName) }}>{m.senderName}</p>}
+                <div className={`px-3.5 py-2.5 ${isMe ? 'bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl rounded-tr-sm active:scale-[0.97] transition-transform cursor-pointer' : 'bg-white/10 border border-white/15 rounded-2xl rounded-tl-sm'}`}
+                  onClick={() => isMe && setActionMsg(m)}>
+                  <span className={`text-[14px] leading-relaxed ${isMe ? 'text-white' : 'text-white/90'}`}>{m.message}</span>
+                  <span className={`text-[10px] ml-2 ${isMe ? 'text-blue-200/70' : 'text-white/40'}`}>{formatTime(m.createdAt)}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
         <div ref={chatEndRef} />
       </div>
+      {/* Edit banner */}
       {editMode && (
-        <div className="flex items-center gap-2 px-1 py-1.5 bg-yellow-500/10 border-l-2 border-yellow-500 rounded-r-lg">
+        <div className="flex items-center gap-2 px-2 py-1.5 bg-yellow-500/10 border-l-2 border-yellow-500 rounded-r-lg mb-1">
           <span className="material-symbols-outlined text-yellow-400 text-sm">edit</span>
-          <p className="text-[11px] text-yellow-300 flex-1 truncate">Mengedit pesan</p>
+          <p className="text-[12px] text-yellow-300 flex-1 truncate">Mengedit pesan</p>
           <button onClick={cancelEdit}><span className="material-symbols-outlined text-white/40 text-sm">close</span></button>
         </div>
       )}
-      <InputBar isCompact={false} />
-      {actionMsg && <ActionPopup msg={actionMsg} onClose={() => setActionMsg(null)} />}
+      {/* Input */}
+      <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+        <input ref={inputRef} type="text" value={inputValue} onChange={onInputChange} onKeyDown={onKeyDown}
+          placeholder={editMode ? 'Edit pesan...' : 'Ketik pesan...'} maxLength={1000}
+          className={`flex-1 ${editMode ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-black/30 border-white/10'} border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary placeholder-slate-500`} />
+        <button onClick={handleSend} disabled={isPending || !canSend}
+          className={`w-10 h-10 ${editMode ? 'bg-gradient-to-r from-yellow-500 to-amber-500' : 'bg-gradient-to-r from-blue-600 to-blue-500'} text-white flex items-center justify-center rounded-xl disabled:opacity-30 shrink-0`}>
+          <span className="material-symbols-outlined text-sm">{editMode ? 'check' : 'send'}</span>
+        </button>
+      </div>
+      {/* Action popup */}
+      {actionMsg && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setActionMsg(null)}>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="relative bg-slate-900 border border-white/10 rounded-t-2xl w-full max-w-sm p-4 pb-6 space-y-1 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="bg-white/5 rounded-xl px-3 py-2 mb-3">
+              <p className="text-sm text-white/70 line-clamp-2">{actionMsg.message}</p>
+            </div>
+            <button onClick={() => handleEdit(actionMsg)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left">
+              <span className="material-symbols-outlined text-blue-400 text-lg">edit</span>
+              <span className="text-sm text-white font-medium">Edit Pesan</span>
+            </button>
+            <button onClick={() => handleDelete(actionMsg.id)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left">
+              <span className="material-symbols-outlined text-red-400 text-lg">delete</span>
+              <span className="text-sm text-red-400 font-medium">Hapus Pesan</span>
+            </button>
+            <button onClick={() => setActionMsg(null)} className="w-full text-center py-2 text-xs text-white/40 font-medium mt-2">Batal</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
