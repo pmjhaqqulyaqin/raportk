@@ -4,6 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useMySchool, useJoinSchool, useLeaveSchool, useSchoolMembers, useSchoolProgress, useSchoolInfo,
   useSchoolStudents, useImportFromColleague, useTransferStudent, useSchoolDuplicates,
   useTeacherTemplates, useForkTemplates, useActivityFeed } from '../hooks/queries';
+import { useSession } from '../lib/authClient';
+import ChatBox from '../components/ChatBox';
 
 function SchoolHub() {
   const { data: mySchool, isLoading } = useMySchool();
@@ -107,6 +109,7 @@ function SchoolHub() {
   const otherMembers = (members || []).filter(m => m.userId !== mySchool?.memberId?.split?.('-')?.[0]);
   const tabs = [
     { id: 'progress', label: 'Progress', icon: 'monitoring' },
+    { id: 'chat', label: 'Chat', icon: 'forum' },
     { id: 'activity', label: 'Aktivitas', icon: 'notifications' },
     { id: 'members', label: 'Anggota', icon: 'group' },
     { id: 'templates', label: 'Template', icon: 'description' },
@@ -114,6 +117,8 @@ function SchoolHub() {
     { id: 'transfer', label: 'Transfer', icon: 'swap_horiz' },
     { id: 'duplicates', label: 'Duplikat', icon: 'content_copy' },
   ];
+
+  const { data: sessionData } = useSession();
 
   return (
     <div className="font-sans min-h-screen text-white pb-20">
@@ -340,6 +345,13 @@ function SchoolHub() {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* CHAT TAB */}
+          {activeTab === 'chat' && (
+            <div className="glass-card rounded-2xl p-5 border-white/5">
+              <ChatBox npsn={npsn} currentUserId={sessionData?.user?.id} />
             </div>
           )}
 

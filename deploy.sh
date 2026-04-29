@@ -94,11 +94,14 @@ else
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
             sender_id TEXT NOT NULL REFERENCES \"user\"(id) ON DELETE CASCADE,
+            recipient_id TEXT,
             message TEXT NOT NULL,
             reply_to UUID,
             created_at TIMESTAMP DEFAULT NOW() NOT NULL
         );
         CREATE INDEX IF NOT EXISTS idx_chat_school_time ON chat_messages(school_id, created_at DESC);
+        -- Add recipient_id to existing table if missing
+        ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS recipient_id TEXT;
     " 2>&1 && echo "    ✓ Schema SQL applied" || echo "    ⚠ Schema SQL warning"
 fi
 

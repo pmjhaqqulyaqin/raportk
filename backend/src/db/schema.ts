@@ -167,11 +167,12 @@ export const activityLogs = pgTable("activity_logs", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Chat messages per school hub
+// Chat messages per school hub (recipientId NULL = group, non-NULL = DM)
 export const chatMessages = pgTable("chat_messages", {
     id: uuid("id").defaultRandom().primaryKey(),
     schoolId: uuid("school_id").notNull().references(() => schools.id, { onDelete: 'cascade' }),
     senderId: text("sender_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+    recipientId: text("recipient_id"),
     message: text("message").notNull(),
     replyTo: uuid("reply_to"),
     createdAt: timestamp("created_at").defaultNow().notNull(),

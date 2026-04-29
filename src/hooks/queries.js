@@ -384,11 +384,23 @@ export const useActivityFeed = (npsn) => {
 };
 
 // --- CHAT ---
-export const useChatHistory = (npsn) => {
+export const useChatHistory = (npsn, toUserId = null) => {
   return useQuery({
-    queryKey: ['chatHistory', npsn],
+    queryKey: ['chatHistory', npsn, toUserId || 'group'],
     queryFn: async () => {
-      const { data } = await apiClient.get(`/chat/${npsn}?limit=30`);
+      const params = toUserId ? `?limit=30&to=${toUserId}` : '?limit=30';
+      const { data } = await apiClient.get(`/chat/${npsn}${params}`);
+      return data;
+    },
+    enabled: !!npsn,
+  });
+};
+
+export const useConversations = (npsn) => {
+  return useQuery({
+    queryKey: ['conversations', npsn],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/chat/${npsn}/conversations`);
       return data;
     },
     enabled: !!npsn,
@@ -398,12 +410,13 @@ export const useChatHistory = (npsn) => {
 export const useSendChat = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ npsn, message, replyTo }) => {
-      const { data } = await apiClient.post(`/chat/${npsn}`, { message, replyTo });
+    mutationFn: async ({ npsn, message, replyTo, recipientId }) => {
+      const { data } = await apiClient.post(`/chat/${npsn}`, { message, replyTo, recipientId });
       return data;
     },
-    onSuccess: (_, { npsn }) => {
+    onSuccess: (_, { npsn, recipientId }) => {
       queryClient.invalidateQueries({ queryKey: ['chatHistory', npsn] });
+      queryClient.invalidateQueries({ queryKey: ['conversations', npsn] });
     },
   });
 };
@@ -417,6 +430,7 @@ export const useDeleteChat = () => {
     },
     onSuccess: (_, { npsn }) => {
       queryClient.invalidateQueries({ queryKey: ['chatHistory', npsn] });
+      queryClient.invalidateQueries({ queryKey: ['conversations', npsn] });
     },
   });
 };

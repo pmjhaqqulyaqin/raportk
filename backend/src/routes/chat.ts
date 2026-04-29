@@ -1,14 +1,13 @@
 import { Router } from 'express';
 import { db } from '../db';
 import { chatMessages, schoolMembers, schools, user } from '../db/schema';
-import { eq, and, desc, lt } from 'drizzle-orm';
+import { eq, and, desc, lt, or, isNull, sql } from 'drizzle-orm';
 import { requireAuth } from '../middleware/authMiddleware';
 import { broadcast } from '../lib/sse';
 
 const router = Router();
 router.use(requireAuth);
 
-// Helper: verify membership and get school
 async function getSchoolCtx(userId: string, npsn: string) {
     const school = await db.select().from(schools).where(eq(schools.npsn, npsn));
     if (school.length === 0) return null;
@@ -18,21 +17,40 @@ async function getSchoolCtx(userId: string, npsn: string) {
     return { school: school[0], member: member[0] };
 }
 
-// GET /api/chat/:npsn — Load chat history (cursor-based, newest first)
+// GET /api/chat/:npsn?to=userId — Load chat (group if no 'to', DM if 'to' specified)
 router.get('/:npsn', async (req, res) => {
     const userId = (req as any).user.id;
     const { npsn } = req.params;
     const limit = Math.min(parseInt(req.query.limit as string) || 30, 50);
-    const before = req.query.before as string; // cursor: message ID
+    const toUserId = req.query.to as string;
 
     try {
         const ctx = await getSchoolCtx(userId, npsn);
         if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
 
-        let query = db.select({
+        let condition;
+        if (toUserId) {
+            // DM: messages between me and target
+            condition = and(
+                eq(chatMessages.schoolId, ctx.school.id),
+                or(
+                    and(eq(chatMessages.senderId, userId), eq(chatMessages.recipientId, toUserId)),
+                    and(eq(chatMessages.senderId, toUserId), eq(chatMessages.recipientId, userId))
+                )
+            );
+        } else {
+            // Group: messages with no recipient
+            condition = and(
+                eq(chatMessages.schoolId, ctx.school.id),
+                isNull(chatMessages.recipientId)
+            );
+        }
+
+        const messages = await db.select({
             id: chatMessages.id,
             message: chatMessages.message,
             replyTo: chatMessages.replyTo,
+            recipientId: chatMessages.recipientId,
             createdAt: chatMessages.createdAt,
             senderId: chatMessages.senderId,
             senderName: user.name,
@@ -40,47 +58,74 @@ router.get('/:npsn', async (req, res) => {
         })
         .from(chatMessages)
         .innerJoin(user, eq(chatMessages.senderId, user.id))
-        .where(eq(chatMessages.schoolId, ctx.school.id))
+        .where(condition)
         .orderBy(desc(chatMessages.createdAt))
         .limit(limit);
 
-        // Cursor pagination: load older messages
-        if (before) {
-            const ref = await db.select({ createdAt: chatMessages.createdAt }).from(chatMessages).where(eq(chatMessages.id, before));
-            if (ref.length > 0) {
-                query = db.select({
-                    id: chatMessages.id,
-                    message: chatMessages.message,
-                    replyTo: chatMessages.replyTo,
-                    createdAt: chatMessages.createdAt,
-                    senderId: chatMessages.senderId,
-                    senderName: user.name,
-                    senderImage: user.image,
-                })
-                .from(chatMessages)
-                .innerJoin(user, eq(chatMessages.senderId, user.id))
-                .where(and(
-                    eq(chatMessages.schoolId, ctx.school.id),
-                    lt(chatMessages.createdAt, ref[0].createdAt)
-                ))
-                .orderBy(desc(chatMessages.createdAt))
-                .limit(limit);
-            }
-        }
-
-        const messages = await query;
-        res.json(messages.reverse()); // Return in chronological order
+        res.json(messages.reverse());
     } catch (error) {
         console.error('Chat history error:', error);
         res.status(500).json({ error: 'Gagal memuat chat' });
     }
 });
 
-// POST /api/chat/:npsn — Send message
+// GET /api/chat/:npsn/conversations — List DM conversations with last message
+router.get('/:npsn/conversations', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn } = req.params;
+
+    try {
+        const ctx = await getSchoolCtx(userId, npsn);
+        if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+        // Get all DM messages involving this user
+        const dms = await db.select({
+            id: chatMessages.id,
+            senderId: chatMessages.senderId,
+            recipientId: chatMessages.recipientId,
+            message: chatMessages.message,
+            createdAt: chatMessages.createdAt,
+        })
+        .from(chatMessages)
+        .where(and(
+            eq(chatMessages.schoolId, ctx.school.id),
+            or(eq(chatMessages.senderId, userId), eq(chatMessages.recipientId, userId)),
+            sql`${chatMessages.recipientId} IS NOT NULL`
+        ))
+        .orderBy(desc(chatMessages.createdAt));
+
+        // Group by partner, keep latest
+        const seen = new Map<string, any>();
+        for (const dm of dms) {
+            const partnerId = dm.senderId === userId ? dm.recipientId! : dm.senderId;
+            if (!seen.has(partnerId)) {
+                seen.set(partnerId, { partnerId, lastMessage: dm.message, lastAt: dm.createdAt });
+            }
+        }
+
+        // Fetch partner info
+        const convos = [];
+        for (const [partnerId, info] of seen) {
+            const partner = await db.select({ name: user.name, image: user.image }).from(user).where(eq(user.id, partnerId));
+            convos.push({
+                ...info,
+                partnerName: partner[0]?.name || 'Unknown',
+                partnerImage: partner[0]?.image || null,
+            });
+        }
+
+        res.json(convos);
+    } catch (error) {
+        console.error('Conversations error:', error);
+        res.status(500).json({ error: 'Gagal memuat percakapan' });
+    }
+});
+
+// POST /api/chat/:npsn — Send message (group or DM)
 router.post('/:npsn', async (req, res) => {
     const userId = (req as any).user.id;
     const { npsn } = req.params;
-    const { message, replyTo } = req.body;
+    const { message, replyTo, recipientId } = req.body;
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
         return res.status(400).json({ error: 'Pesan tidak boleh kosong' });
@@ -98,6 +143,7 @@ router.post('/:npsn', async (req, res) => {
         const [created] = await db.insert(chatMessages).values({
             schoolId: ctx.school.id,
             senderId: userId,
+            recipientId: recipientId || null,
             message: message.trim(),
             replyTo: replyTo || null,
         }).returning();
@@ -106,13 +152,14 @@ router.post('/:npsn', async (req, res) => {
             id: created.id,
             message: created.message,
             replyTo: created.replyTo,
+            recipientId: created.recipientId,
             createdAt: created.createdAt,
             senderId: userId,
             senderName: sender[0]?.name || 'Unknown',
             senderImage: sender[0]?.image || null,
         };
 
-        // Broadcast to all SSE clients in this school
+        // Broadcast: group → all, DM → only sender + recipient via SSE
         broadcast(npsn, 'chat_message', payload);
 
         res.status(201).json(payload);
@@ -122,7 +169,7 @@ router.post('/:npsn', async (req, res) => {
     }
 });
 
-// DELETE /api/chat/:npsn/:messageId — Delete own message
+// DELETE /api/chat/:npsn/:messageId
 router.delete('/:npsn/:messageId', async (req, res) => {
     const userId = (req as any).user.id;
     const { npsn, messageId } = req.params;
@@ -134,7 +181,6 @@ router.delete('/:npsn/:messageId', async (req, res) => {
         const msg = await db.select().from(chatMessages).where(eq(chatMessages.id, messageId));
         if (msg.length === 0) return res.status(404).json({ error: 'Pesan tidak ditemukan' });
 
-        // Only sender or admin can delete
         if (msg[0].senderId !== userId && ctx.member.role !== 'admin') {
             return res.status(403).json({ error: 'Hanya pengirim atau admin yang bisa menghapus' });
         }
