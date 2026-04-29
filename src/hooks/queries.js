@@ -346,53 +346,26 @@ export const useSchoolDuplicates = (npsn) => {
 };
 
 // --- PHASE 3: TEMPLATE SHARING ---
-export const useSharedTemplates = (npsn) => {
+export const useTeacherTemplates = (npsn, teacherId) => {
   return useQuery({
-    queryKey: ['sharedTemplates', npsn],
+    queryKey: ['teacherTemplates', npsn, teacherId],
     queryFn: async () => {
-      const { data } = await apiClient.get(`/schools/${npsn}/templates`);
+      const { data } = await apiClient.get(`/schools/${npsn}/templates-by-user/${teacherId}`);
       return data;
     },
-    enabled: !!npsn,
+    enabled: !!npsn && !!teacherId,
   });
 };
 
-export const useShareTemplate = () => {
+export const useForkTemplates = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ npsn, templateId }) => {
-      const { data } = await apiClient.post(`/schools/${npsn}/templates/share`, { templateId });
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sharedTemplates'] });
-    },
-  });
-};
-
-export const useForkTemplate = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ npsn, templateId }) => {
-      const { data } = await apiClient.post(`/schools/${npsn}/templates/fork`, { templateId });
+    mutationFn: async ({ npsn, templateIds }) => {
+      const { data } = await apiClient.post(`/schools/${npsn}/templates/fork`, { templateIds });
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['templates'] });
-      queryClient.invalidateQueries({ queryKey: ['sharedTemplates'] });
-    },
-  });
-};
-
-export const useUnshareTemplate = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ npsn, shareId }) => {
-      const { data } = await apiClient.delete(`/schools/${npsn}/templates/${shareId}`);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sharedTemplates'] });
     },
   });
 };

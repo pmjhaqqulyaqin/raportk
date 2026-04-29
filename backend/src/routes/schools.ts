@@ -514,7 +514,76 @@ router.get('/:npsn/duplicates', async (req, res) => {
 // PHASE 3: TEMPLATE SHARING
 // =============================================
 
-// POST /api/schools/:npsn/templates/share — Share a template to school hub
+// GET /api/schools/:npsn/templates-by-user/:userId — Get templates of a specific teacher
+router.get('/:npsn/templates-by-user/:targetUserId', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn, targetUserId } = req.params;
+    try {
+        const ctx = await verifyMembership(userId, npsn);
+        if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+        // Verify target is in same school
+        const targetMember = await db.select().from(schoolMembers)
+            .where(and(eq(schoolMembers.schoolId, ctx.school.id), eq(schoolMembers.userId, targetUserId)));
+        if (targetMember.length === 0) return res.status(400).json({ error: 'Guru bukan anggota sekolah ini' });
+
+        const tpls = await db.select().from(templates).where(eq(templates.userId, targetUserId));
+        res.json(tpls);
+    } catch (error) {
+        console.error('Templates by user error:', error);
+        res.status(500).json({ error: 'Gagal memuat template' });
+    }
+});
+
+// POST /api/schools/:npsn/templates/fork — Fork (copy) templates to own collection
+router.post('/:npsn/templates/fork', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn } = req.params;
+    const { templateIds } = req.body;
+
+    if (!templateIds || !Array.isArray(templateIds) || templateIds.length === 0) {
+        return res.status(400).json({ error: 'Pilih minimal 1 template' });
+    }
+
+    try {
+        const ctx = await verifyMembership(userId, npsn);
+        if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+        const sourceTpls = await db.select().from(templates);
+        const toFork = sourceTpls.filter(t => templateIds.includes(t.id));
+        if (toFork.length === 0) return res.status(400).json({ error: 'Template tidak ditemukan' });
+
+        // Check for duplicates by name+category
+        const myTpls = await db.select().from(templates).where(eq(templates.userId, userId));
+        const myKeys = new Set(myTpls.map(t => `${t.category}||${t.name.toLowerCase()}`));
+
+        let skipped = 0;
+        const newTpls = toFork.filter(t => {
+            if (myKeys.has(`${t.category}||${t.name.toLowerCase()}`)) { skipped++; return false; }
+            return true;
+        }).map(t => ({
+            userId,
+            category: t.category,
+            name: t.name,
+            text: t.text,
+            phase: t.phase,
+            groupName: t.groupName,
+            semester: t.semester,
+        }));
+
+        if (newTpls.length > 0) await db.insert(templates).values(newTpls);
+
+        res.json({
+            success: true,
+            imported: newTpls.length,
+            skipped,
+            message: `${newTpls.length} template berhasil diimpor${skipped > 0 ? `, ${skipped} dilewati (duplikat)` : ''}.`,
+        });
+    } catch (error) {
+        console.error('Fork templates error:', error);
+        res.status(500).json({ error: 'Gagal fork template' });
+    }
+});
 router.post('/:npsn/templates/share', async (req, res) => {
     const userId = (req as any).user.id;
     const { npsn } = req.params;

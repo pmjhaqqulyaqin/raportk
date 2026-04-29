@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMySchool, useJoinSchool, useLeaveSchool, useSchoolMembers, useSchoolProgress, useSchoolInfo,
   useSchoolStudents, useImportFromColleague, useTransferStudent, useSchoolDuplicates,
-  useSharedTemplates, useShareTemplate, useForkTemplate, useUnshareTemplate, useTemplates } from '../hooks/queries';
+  useTeacherTemplates, useForkTemplates } from '../hooks/queries';
 
 function SchoolHub() {
   const { data: mySchool, isLoading } = useMySchool();
@@ -14,13 +14,9 @@ function SchoolHub() {
   const { data: progress } = useSchoolProgress(npsn);
   const { data: schoolStudents } = useSchoolStudents(npsn);
   const { data: dupData } = useSchoolDuplicates(npsn);
-  const { data: sharedTpls } = useSharedTemplates(npsn);
-  const { data: myTemplates } = useTemplates();
   const { mutate: importStudents, isPending: isImporting } = useImportFromColleague();
   const { mutate: transferStudent, isPending: isTransferring } = useTransferStudent();
-  const { mutate: shareTemplate } = useShareTemplate();
-  const { mutate: forkTemplate } = useForkTemplate();
-  const { mutate: unshareTemplate } = useUnshareTemplate();
+  const { mutate: forkTemplates, isPending: isForking } = useForkTemplates();
 
   const [joinNpsn, setJoinNpsn] = useState('');
   const [joinName, setJoinName] = useState('');
@@ -28,7 +24,10 @@ function SchoolHub() {
   const [selectedTeacher, setSelectedTeacher] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
   const [transferTarget, setTransferTarget] = useState('');
-  const [shareTemplateId, setShareTemplateId] = useState('');
+  const [tplTeacher, setTplTeacher] = useState('');
+  const [selectedTplIds, setSelectedTplIds] = useState([]);
+
+  const { data: teacherTpls } = useTeacherTemplates(npsn, tplTeacher);
 
   const handleJoin = () => {
     if (!joinNpsn || joinNpsn.length < 8) return alert('NPSN harus minimal 8 digit');
@@ -262,45 +261,37 @@ function SchoolHub() {
           {/* TEMPLATES TAB */}
           {activeTab === 'templates' && (
             <div className="glass-card rounded-2xl p-5 border-white/5 space-y-4">
-              {/* Share own template */}
-              <div className="bg-black/20 rounded-xl p-4 space-y-3">
-                <h5 className="text-xs font-black text-white flex items-center gap-2"><span className="material-symbols-outlined text-sm text-secondary">share</span>Bagikan Template Anda</h5>
-                <div className="flex gap-2">
-                  <select value={shareTemplateId} onChange={e => setShareTemplateId(e.target.value)} className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-primary">
-                    <option value="">— Pilih Template —</option>
-                    {(myTemplates || []).map(t => <option key={t.id} value={t.id}>[{t.category}] {t.name}</option>)}
-                  </select>
-                  <button onClick={() => { if (!shareTemplateId) return; shareTemplate({ npsn, templateId: shareTemplateId }, { onSuccess: (d) => { alert(d.message); setShareTemplateId(''); }, onError: (e) => alert(e?.response?.data?.error || 'Gagal') }); }} disabled={!shareTemplateId}
-                    className="px-4 py-2 bg-gradient-to-r from-secondary to-primary text-white rounded-lg text-xs font-bold disabled:opacity-50">Bagikan</button>
+              <p className="text-xs text-slate-400">Pilih guru → centang template → preview narasi → import ke koleksi Anda. Duplikat (nama+kategori sama) otomatis dilewati.</p>
+              <select value={tplTeacher} onChange={e => { setTplTeacher(e.target.value); setSelectedTplIds([]); }} className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                <option value="">— Pilih Guru —</option>
+                {members?.map(m => <option key={m.userId} value={m.userId}>{m.userName} {m.classGroup ? `(Kelas ${m.classGroup})` : ''}</option>)}
+              </select>
+              {tplTeacher && teacherTpls && teacherTpls.length > 0 && (<>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-300">{teacherTpls.length} template ditemukan</span>
+                  <button onClick={() => setSelectedTplIds(selectedTplIds.length === teacherTpls.length ? [] : teacherTpls.map(t => t.id))} className="text-[10px] text-primary font-bold">{selectedTplIds.length === teacherTpls.length ? 'Batal Semua' : 'Pilih Semua'}</button>
                 </div>
-              </div>
-              {/* Shared templates list */}
-              <h5 className="text-xs font-black text-white">Template Sekolah ({(sharedTpls || []).length})</h5>
-              {(sharedTpls || []).length === 0 ? <p className="text-xs text-slate-500 text-center py-4">Belum ada template yang dibagikan.</p> : (
-                <div className="space-y-2">
-                  {(sharedTpls || []).map(t => (
-                    <div key={t.shareId} className="bg-black/20 rounded-xl p-3 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[10px] font-bold border border-indigo-500/20">{t.category}</span>
-                        {t.isOfficial && <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[10px] font-bold border border-amber-500/20">⭐ Resmi</span>}
-                        <span className="text-[10px] text-slate-500 ml-auto">oleh {t.sharedByName}</span>
+                <div className="space-y-1 max-h-[400px] overflow-y-auto">
+                  {teacherTpls.map(t => {
+                    const isChecked = selectedTplIds.includes(t.id);
+                    return (
+                      <div key={t.id} className={`rounded-xl transition-all ${isChecked ? 'bg-primary/10 border border-primary/30' : 'bg-black/20 border border-transparent'}`}>
+                        <label className="flex items-center gap-3 p-3 cursor-pointer">
+                          <input type="checkbox" checked={isChecked} onChange={() => setSelectedTplIds(prev => prev.includes(t.id) ? prev.filter(x => x !== t.id) : [...prev, t.id])} className="accent-primary shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2"><span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[9px] font-bold">{t.category}</span><span className="text-xs font-bold text-white truncate">{t.name}</span></div>
+                          </div>
+                        </label>
+                        {isChecked && <div className="px-3 pb-3 pt-0"><p className="text-[11px] text-slate-400 bg-black/30 rounded-lg p-2.5 leading-relaxed">{t.text}</p></div>}
                       </div>
-                      <h6 className="text-sm font-bold text-white">{t.name}</h6>
-                      <p className="text-[11px] text-slate-400 line-clamp-2">{t.text}</p>
-                      <div className="flex gap-2 pt-1">
-                        <button onClick={() => forkTemplate({ npsn, templateId: t.templateId }, { onSuccess: (d) => alert(d.message), onError: (e) => alert(e?.response?.data?.error || 'Gagal') })}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-lg border border-emerald-500/20 hover:bg-emerald-500/20">
-                          <span className="material-symbols-outlined text-xs">fork_right</span>Fork ke Milik Saya
-                        </button>
-                        <button onClick={() => { if (window.confirm('Hapus dari sharing?')) unshareTemplate({ npsn, shareId: t.shareId }, { onSuccess: () => {}, onError: (e) => alert(e?.response?.data?.error || 'Gagal') }); }}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-red-500/10 text-red-400 text-[10px] font-bold rounded-lg border border-red-500/20 hover:bg-red-500/20">
-                          <span className="material-symbols-outlined text-xs">delete</span>Hapus
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
-              )}
+                <button onClick={() => { if (!selectedTplIds.length) return; forkTemplates({ npsn, templateIds: selectedTplIds }, { onSuccess: (d) => { alert(d.message); setSelectedTplIds([]); }, onError: (e) => alert(e?.response?.data?.error || 'Gagal') }); }} disabled={isForking || !selectedTplIds.length} className="w-full py-3 bg-gradient-to-r from-secondary to-primary text-white rounded-xl text-sm font-bold disabled:opacity-50">
+                  {isForking ? 'Mengimpor...' : `Import ${selectedTplIds.length} Template`}
+                </button>
+              </>)}
+              {tplTeacher && teacherTpls && teacherTpls.length === 0 && <p className="text-xs text-slate-500 text-center py-4">Guru ini belum memiliki template.</p>}
             </div>
           )}
 
