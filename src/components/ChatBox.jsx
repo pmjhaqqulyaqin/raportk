@@ -127,7 +127,7 @@ function ChatBox({ npsn, compact = false, currentUserId }) {
     }
     const displayMessages = (messages || []).slice(-6);
     return (
-      <div className="flex flex-col" style={{ height: 400 }}>
+      <div className="flex flex-col relative" style={{ height: 400 }}>
         {/* Header */}
         <div className="flex items-center gap-2 py-1.5">
           <button onClick={() => { setActiveChat(null); cancelEdit(); }} className="text-slate-400 hover:text-white">
@@ -176,23 +176,23 @@ function ChatBox({ npsn, compact = false, currentUserId }) {
             <span className="material-symbols-outlined text-sm">{editMode ? 'check' : 'send'}</span>
           </button>
         </div>
-        {/* Action popup */}
+        {/* Action popup — inline within card */}
         {actionMsg && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setActionMsg(null)}>
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-            <div className="relative bg-slate-900 border border-white/10 rounded-t-2xl w-full max-w-sm p-4 pb-6 space-y-1 animate-slide-up" onClick={e => e.stopPropagation()}>
-              <div className="bg-white/5 rounded-xl px-3 py-2 mb-3">
-                <p className="text-xs text-white/70 line-clamp-2">{actionMsg.message}</p>
+          <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl" onClick={() => setActionMsg(null)}>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-2xl" />
+            <div className="relative bg-slate-800 border border-white/15 rounded-2xl w-[85%] p-4 space-y-1 shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
+              <div className="bg-white/5 rounded-xl px-3 py-2 mb-2">
+                <p className="text-[12px] text-white/70 line-clamp-2">{actionMsg.message}</p>
               </div>
-              <button onClick={() => handleEdit(actionMsg)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left">
-                <span className="material-symbols-outlined text-blue-400 text-lg">edit</span>
-                <span className="text-sm text-white font-medium">Edit Pesan</span>
+              <button onClick={() => handleEdit(actionMsg)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all text-left">
+                <span className="material-symbols-outlined text-blue-400">edit</span>
+                <span className="text-[13px] text-white font-medium">Edit Pesan</span>
               </button>
-              <button onClick={() => handleDelete(actionMsg.id)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left">
-                <span className="material-symbols-outlined text-red-400 text-lg">delete</span>
-                <span className="text-sm text-red-400 font-medium">Hapus Pesan</span>
+              <button onClick={() => handleDelete(actionMsg.id)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all text-left">
+                <span className="material-symbols-outlined text-red-400">delete</span>
+                <span className="text-[13px] text-red-400 font-medium">Hapus Pesan</span>
               </button>
-              <button onClick={() => setActionMsg(null)} className="w-full text-center py-2 text-xs text-white/40 font-medium mt-2">Batal</button>
+              <button onClick={() => setActionMsg(null)} className="w-full text-center py-1.5 text-[11px] text-white/40 font-medium mt-1">Batal</button>
             </div>
           </div>
         )}
@@ -235,7 +235,7 @@ function ChatBox({ npsn, compact = false, currentUserId }) {
   // Chat view (group or DM)
   const displayMessages = messages || [];
   return (
-    <div className="flex flex-col h-[calc(100vh-200px)] max-h-[700px]">
+    <div className="flex flex-col relative h-[calc(100vh-200px)] max-h-[700px]">
       {/* Header */}
       <div className="flex items-center gap-3 pb-3 border-b border-white/5">
         <button onClick={() => { setActiveChat(null); cancelEdit(); }} className="text-slate-400 hover:text-white"><span className="material-symbols-outlined text-lg">arrow_back</span></button>
@@ -291,23 +291,23 @@ function ChatBox({ npsn, compact = false, currentUserId }) {
           <span className="material-symbols-outlined text-sm">{editMode ? 'check' : 'send'}</span>
         </button>
       </div>
-      {/* Action popup */}
+      {/* Action popup — inline within card */}
       {actionMsg && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setActionMsg(null)}>
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-          <div className="relative bg-slate-900 border border-white/10 rounded-t-2xl w-full max-w-sm p-4 pb-6 space-y-1 animate-slide-up" onClick={e => e.stopPropagation()}>
-            <div className="bg-white/5 rounded-xl px-3 py-2 mb-3">
-              <p className="text-sm text-white/70 line-clamp-2">{actionMsg.message}</p>
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl" onClick={() => setActionMsg(null)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-2xl" />
+          <div className="relative bg-slate-800 border border-white/15 rounded-2xl w-[85%] p-4 space-y-1 shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="bg-white/5 rounded-xl px-3 py-2 mb-2">
+              <p className="text-[13px] text-white/70 line-clamp-2">{actionMsg.message}</p>
             </div>
-            <button onClick={() => handleEdit(actionMsg)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left">
-              <span className="material-symbols-outlined text-blue-400 text-lg">edit</span>
+            <button onClick={() => handleEdit(actionMsg)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all text-left">
+              <span className="material-symbols-outlined text-blue-400">edit</span>
               <span className="text-sm text-white font-medium">Edit Pesan</span>
             </button>
-            <button onClick={() => handleDelete(actionMsg.id)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-left">
-              <span className="material-symbols-outlined text-red-400 text-lg">delete</span>
+            <button onClick={() => handleDelete(actionMsg.id)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-all text-left">
+              <span className="material-symbols-outlined text-red-400">delete</span>
               <span className="text-sm text-red-400 font-medium">Hapus Pesan</span>
             </button>
-            <button onClick={() => setActionMsg(null)} className="w-full text-center py-2 text-xs text-white/40 font-medium mt-2">Batal</button>
+            <button onClick={() => setActionMsg(null)} className="w-full text-center py-1.5 text-[11px] text-white/40 font-medium mt-1">Batal</button>
           </div>
         </div>
       )}
