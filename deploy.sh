@@ -102,6 +102,14 @@ else
         CREATE INDEX IF NOT EXISTS idx_chat_school_time ON chat_messages(school_id, created_at DESC);
         -- Add recipient_id to existing table if missing
         ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS recipient_id TEXT;
+        CREATE TABLE IF NOT EXISTS push_subscriptions (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id TEXT NOT NULL REFERENCES \"user\"(id) ON DELETE CASCADE,
+            endpoint TEXT NOT NULL UNIQUE,
+            p256dh TEXT NOT NULL,
+            auth TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT NOW() NOT NULL
+        );
     " 2>&1 && echo "    ✓ Schema SQL applied" || echo "    ⚠ Schema SQL warning"
 fi
 

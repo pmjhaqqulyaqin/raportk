@@ -177,3 +177,13 @@ export const chatMessages = pgTable("chat_messages", {
     replyTo: uuid("reply_to"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Push notification subscriptions
+export const pushSubscriptions = pgTable("push_subscriptions", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+    endpoint: text("endpoint").notNull().unique(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});

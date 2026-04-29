@@ -4,6 +4,7 @@ import { chatMessages, schoolMembers, schools, user } from '../db/schema';
 import { eq, and, desc, lt, or, isNull, sql } from 'drizzle-orm';
 import { requireAuth } from '../middleware/authMiddleware';
 import { broadcast } from '../lib/sse';
+import { sendPushToUser, sendPushToSchoolMembers } from './push';
 
 const router = Router();
 router.use(requireAuth);
@@ -159,8 +160,27 @@ router.post('/:npsn', async (req, res) => {
             senderImage: sender[0]?.image || null,
         };
 
-        // Broadcast: group → all, DM → only sender + recipient via SSE
+        // Broadcast SSE
         broadcast(npsn, 'chat_message', payload);
+
+        // Push notifications (async, don't block response)
+        const senderName = sender[0]?.name || 'Guru';
+        const pushPayload = {
+            title: recipientId ? senderName : `${senderName} (Grup)`,
+            body: message.trim().substring(0, 100),
+            tag: recipientId ? `dm-${userId}` : `group-${npsn}`,
+            url: '/school-hub',
+        };
+
+        if (recipientId) {
+            // DM: push only to recipient
+            sendPushToUser(recipientId, pushPayload).catch(() => {});
+        } else {
+            // Group: push to all members except sender
+            const allMembers = await db.select({ userId: schoolMembers.userId })
+                .from(schoolMembers).where(eq(schoolMembers.schoolId, ctx.school.id));
+            sendPushToSchoolMembers(allMembers.map(m => m.userId), userId, pushPayload).catch(() => {});
+        }
 
         res.status(201).json(payload);
     } catch (error) {

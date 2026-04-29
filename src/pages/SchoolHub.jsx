@@ -6,6 +6,7 @@ import { useMySchool, useJoinSchool, useLeaveSchool, useSchoolMembers, useSchool
   useTeacherTemplates, useForkTemplates, useActivityFeed } from '../hooks/queries';
 import { useSession } from '../lib/authClient';
 import ChatBox from '../components/ChatBox';
+import PushNotificationToggle from '../components/PushNotificationToggle';
 
 function SchoolHub() {
   const { data: mySchool, isLoading } = useMySchool();
@@ -350,8 +351,11 @@ function SchoolHub() {
 
           {/* CHAT TAB */}
           {activeTab === 'chat' && (
-            <div className="glass-card rounded-2xl p-5 border-white/5">
-              <ChatBox npsn={npsn} currentUserId={sessionData?.user?.id} />
+            <div className="space-y-3">
+              <PushNotificationToggle />
+              <div className="glass-card rounded-2xl p-5 border-white/5">
+                <ChatBox npsn={npsn} currentUserId={sessionData?.user?.id} />
+              </div>
             </div>
           )}
 
