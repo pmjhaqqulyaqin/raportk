@@ -162,7 +162,17 @@ export const activityLogs = pgTable("activity_logs", {
     id: uuid("id").defaultRandom().primaryKey(),
     schoolId: uuid("school_id").notNull().references(() => schools.id, { onDelete: 'cascade' }),
     actorId: text("actor_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
-    action: text("action").notNull(), // 'member_joined', 'students_imported', 'student_transferred', 'templates_forked', 'report_completed'
-    payload: text("payload"),         // JSON string with details
+    action: text("action").notNull(),
+    payload: text("payload"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Chat messages per school hub
+export const chatMessages = pgTable("chat_messages", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    schoolId: uuid("school_id").notNull().references(() => schools.id, { onDelete: 'cascade' }),
+    senderId: text("sender_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+    message: text("message").notNull(),
+    replyTo: uuid("reply_to"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });

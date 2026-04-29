@@ -379,6 +379,44 @@ export const useActivityFeed = (npsn) => {
       return data;
     },
     enabled: !!npsn,
-    refetchInterval: 30000, // Fallback polling every 30s
+    refetchInterval: 30000,
+  });
+};
+
+// --- CHAT ---
+export const useChatHistory = (npsn) => {
+  return useQuery({
+    queryKey: ['chatHistory', npsn],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/chat/${npsn}?limit=30`);
+      return data;
+    },
+    enabled: !!npsn,
+  });
+};
+
+export const useSendChat = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ npsn, message, replyTo }) => {
+      const { data } = await apiClient.post(`/chat/${npsn}`, { message, replyTo });
+      return data;
+    },
+    onSuccess: (_, { npsn }) => {
+      queryClient.invalidateQueries({ queryKey: ['chatHistory', npsn] });
+    },
+  });
+};
+
+export const useDeleteChat = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ npsn, messageId }) => {
+      const { data } = await apiClient.delete(`/chat/${npsn}/${messageId}`);
+      return data;
+    },
+    onSuccess: (_, { npsn }) => {
+      queryClient.invalidateQueries({ queryKey: ['chatHistory', npsn] });
+    },
   });
 };
