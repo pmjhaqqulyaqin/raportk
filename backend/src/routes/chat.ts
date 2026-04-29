@@ -189,6 +189,39 @@ router.post('/:npsn', async (req, res) => {
     }
 });
 
+// PUT /api/chat/:npsn/:messageId — Edit own message
+router.put('/:npsn/:messageId', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { npsn, messageId } = req.params;
+    const { message } = req.body;
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+        return res.status(400).json({ error: 'Pesan tidak boleh kosong' });
+    }
+    if (message.length > 1000) {
+        return res.status(400).json({ error: 'Pesan maksimal 1000 karakter' });
+    }
+
+    try {
+        const ctx = await getSchoolCtx(userId, npsn);
+        if (!ctx) return res.status(403).json({ error: 'Akses ditolak' });
+
+        const msg = await db.select().from(chatMessages).where(eq(chatMessages.id, messageId));
+        if (msg.length === 0) return res.status(404).json({ error: 'Pesan tidak ditemukan' });
+
+        if (msg[0].senderId !== userId) {
+            return res.status(403).json({ error: 'Hanya pengirim yang bisa mengedit' });
+        }
+
+        await db.update(chatMessages).set({ message: message.trim() }).where(eq(chatMessages.id, messageId));
+        broadcast(npsn, 'chat_edit', { messageId, message: message.trim() });
+        res.json({ success: true, message: message.trim() });
+    } catch (error) {
+        console.error('Edit chat error:', error);
+        res.status(500).json({ error: 'Gagal mengedit pesan' });
+    }
+});
+
 // DELETE /api/chat/:npsn/:messageId
 router.delete('/:npsn/:messageId', async (req, res) => {
     const userId = (req as any).user.id;

@@ -434,3 +434,16 @@ export const useDeleteChat = () => {
     },
   });
 };
+
+export const useEditChat = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ npsn, messageId, message }) => {
+      const { data } = await apiClient.put(`/chat/${npsn}/${messageId}`, { message });
+      return data;
+    },
+    onSuccess: (_, { npsn }) => {
+      queryClient.invalidateQueries({ queryKey: ['chatHistory', npsn] });
+    },
+  });
+};
