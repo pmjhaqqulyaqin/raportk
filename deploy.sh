@@ -50,6 +50,13 @@ if [ "$CURRENT_KEY" != "$GEMINI_KEYS" ]; then
     echo "    ✓ Gemini keys updated"
 fi
 
+# 1d. Ensure OpenRouter API key in .env.production (idempotent)
+if ! grep -q "OPENROUTER_API_KEY" "$APP_DIR/.env.production" 2>/dev/null; then
+    echo "    🌐 Adding OpenRouter fallback key..."
+    echo "OPENROUTER_API_KEY=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" >> "$APP_DIR/.env.production"
+    echo "    ✓ OpenRouter key added"
+fi
+
 # 2. Build & restart containers
 echo ""
 echo "🐳 [2/5] Building and starting Docker containers..."
