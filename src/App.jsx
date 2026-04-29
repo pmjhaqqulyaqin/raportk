@@ -6,6 +6,7 @@ import ReportEditor from './pages/ReportEditor';
 import PrintPreview from './pages/PrintPreview';
 import SetupSekolah from './pages/SetupSekolah';
 import TemplateManager from './pages/TemplateManager';
+import SchoolHub from './pages/SchoolHub';
 import BottomNav from './components/BottomNav';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -53,6 +54,7 @@ function App() {
           <Route path="/editor" element={<ProtectedRoute><ReportEditor /></ProtectedRoute>} />
           <Route path="/editor/:id" element={<ProtectedRoute><ReportEditor /></ProtectedRoute>} />
           <Route path="/templates" element={<ProtectedRoute><TemplateManager /></ProtectedRoute>} />
+          <Route path="/school-hub" element={<ProtectedRoute><SchoolHub /></ProtectedRoute>} />
           <Route path="/print" element={<ProtectedRoute><PrintPreview /></ProtectedRoute>} />
           <Route path="/print/:id" element={<ProtectedRoute><PrintPreview /></ProtectedRoute>} />
         </Routes>

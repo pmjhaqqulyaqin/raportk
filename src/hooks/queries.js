@@ -231,3 +231,63 @@ export const useGenerateVariations = () => {
     },
   });
 };
+
+// --- SCHOOL COLLABORATION ---
+export const useMySchool = () => {
+  return useQuery({
+    queryKey: ['mySchool'],
+    queryFn: async () => {
+      const { data } = await apiClient.get('/schools/my');
+      return data;
+    },
+  });
+};
+
+export const useJoinSchool = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ npsn, schoolName }) => {
+      const { data } = await apiClient.post('/schools/join', { npsn, schoolName });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mySchool'] });
+      queryClient.invalidateQueries({ queryKey: ['schoolInfo'] });
+    },
+  });
+};
+
+export const useLeaveSchool = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await apiClient.delete('/schools/leave');
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mySchool'] });
+    },
+  });
+};
+
+export const useSchoolMembers = (npsn) => {
+  return useQuery({
+    queryKey: ['schoolMembers', npsn],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/schools/${npsn}/members`);
+      return data;
+    },
+    enabled: !!npsn,
+  });
+};
+
+export const useSchoolProgress = (npsn) => {
+  return useQuery({
+    queryKey: ['schoolProgress', npsn],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/schools/${npsn}/progress`);
+      return data;
+    },
+    enabled: !!npsn,
+  });
+};

@@ -244,6 +244,21 @@ function Home() {
             </div>
           </div>
 
+          {/* School Hub CTA */}
+          <Link to="/school-hub" className="block mt-3 lg:mt-6">
+            <div className="glass-card rounded-2xl lg:rounded-[2rem] p-4 lg:p-6 flex items-center gap-4 border-white/5 hover:bg-white/5 transition-all group relative overflow-hidden">
+              <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-violet-500/10 rounded-full blur-2xl pointer-events-none"></div>
+              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center text-white shadow-lg shrink-0">
+                <span className="material-symbols-outlined text-2xl">groups</span>
+              </div>
+              <div className="flex-1 min-w-0 relative z-10">
+                <h4 className="text-sm lg:text-base font-black text-white">School Hub — Kolaborasi Guru</h4>
+                <p className="text-[11px] lg:text-xs text-slate-400 mt-0.5">Bergabung via NPSN • Sinkronisasi data • Pantau progress raport seluruh sekolah</p>
+              </div>
+              <span className="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors">arrow_forward_ios</span>
+            </div>
+          </Link>
+
           {/* Modern List Section */}
           <section className="mt-4 lg:mt-12">
             <div className="flex items-center justify-between mb-3 lg:mb-6">

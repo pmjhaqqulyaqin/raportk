@@ -55,6 +55,33 @@ else
         ALTER TABLE school_info ADD COLUMN IF NOT EXISTS npsn TEXT;
         ALTER TABLE students ADD COLUMN IF NOT EXISTS birth_place TEXT;
         ALTER TABLE students ADD COLUMN IF NOT EXISTS birth_date TEXT;
+
+        -- v1.3: School collaboration tables
+        CREATE TABLE IF NOT EXISTS schools (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            npsn TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
+            address TEXT,
+            logo_url TEXT,
+            created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+            updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS school_members (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+            user_id TEXT NOT NULL REFERENCES \"user\"(id) ON DELETE CASCADE,
+            role TEXT DEFAULT 'guru' NOT NULL,
+            class_group TEXT,
+            joined_at TIMESTAMP DEFAULT NOW() NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS shared_templates (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
+            school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+            shared_by TEXT NOT NULL REFERENCES \"user\"(id) ON DELETE CASCADE,
+            is_official BOOLEAN DEFAULT FALSE,
+            shared_at TIMESTAMP DEFAULT NOW() NOT NULL
+        );
     " 2>&1 && echo "    ✓ Schema SQL applied" || echo "    ⚠ Schema SQL warning"
 fi
 

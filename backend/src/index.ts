@@ -12,6 +12,7 @@ import templatesRouter from './routes/templates';
 import backupRouter from './routes/backup';
 import aiRouter from './routes/ai';
 import uploadRouter from './routes/upload';
+import schoolsRouter from './routes/schools';
 
 // Load .env — Docker production: /app/.env.production, Dev: ../../.env
 const isProduction = process.env.NODE_ENV === 'production';
@@ -40,6 +41,7 @@ app.use('/api/templates', templatesRouter);
 app.use('/api/backup', backupRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/schools', schoolsRouter);
 
 // Serve uploaded files (profile photos, etc.)
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));

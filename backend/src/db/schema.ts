@@ -121,3 +121,39 @@ export const templates = pgTable("templates", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// ==========================================
+// NPSN-Based School Collaboration Tables
+// ==========================================
+
+// Master school record — one per NPSN
+export const schools = pgTable("schools", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    npsn: text("npsn").notNull().unique(),
+    name: text("name").notNull(),
+    address: text("address"),
+    logoUrl: text("logo_url"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Membership: user ↔ school relationship
+export const schoolMembers = pgTable("school_members", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    schoolId: uuid("school_id").notNull().references(() => schools.id, { onDelete: 'cascade' }),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+    role: text("role").default("guru").notNull(),  // 'admin' | 'guru'
+    classGroup: text("class_group"),               // 'A', 'B', etc.
+    joinedAt: timestamp("joined_at").defaultNow().notNull(),
+});
+
+// Shared templates within a school hub
+export const sharedTemplates = pgTable("shared_templates", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    templateId: uuid("template_id").notNull().references(() => templates.id, { onDelete: 'cascade' }),
+    schoolId: uuid("school_id").notNull().references(() => schools.id, { onDelete: 'cascade' }),
+    sharedBy: text("shared_by").notNull().references(() => user.id, { onDelete: 'cascade' }),
+    isOfficial: boolean("is_official").default(false),
+    sharedAt: timestamp("shared_at").defaultNow().notNull(),
+});
+
