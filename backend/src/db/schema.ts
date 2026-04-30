@@ -125,8 +125,19 @@ export const templates = pgTable("templates", {
     phase: text("phase"),           // 'Fondasi' / null (semua fase)
     groupName: text("group_name"),  // 'A' / 'B' / null (semua kelas)
     semester: text("semester"),     // 'Gasal' / 'Genap' / null (semua semester)
+    isPublic: boolean("is_public").default(false),
+    description: text("description"),
+    forkCount: integer("fork_count").default(0),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Marketplace upvotes
+export const marketplaceVotes = pgTable("marketplace_votes", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    templateId: uuid("template_id").notNull().references(() => templates.id, { onDelete: 'cascade' }),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // ==========================================

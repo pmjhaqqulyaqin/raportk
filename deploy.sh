@@ -132,6 +132,17 @@ else
         -- v1.5: Parent Portal share token
         ALTER TABLE reports ADD COLUMN IF NOT EXISTS share_token TEXT UNIQUE;
         CREATE INDEX IF NOT EXISTS reports_share_token_idx ON reports(share_token);
+
+        -- v1.6: Marketplace
+        ALTER TABLE templates ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT FALSE;
+        ALTER TABLE templates ADD COLUMN IF NOT EXISTS description TEXT;
+        ALTER TABLE templates ADD COLUMN IF NOT EXISTS fork_count INTEGER DEFAULT 0;
+        CREATE TABLE IF NOT EXISTS marketplace_votes (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
+            user_id TEXT NOT NULL REFERENCES \"user\"(id) ON DELETE CASCADE,
+            created_at TIMESTAMP DEFAULT NOW() NOT NULL
+        );
     " 2>&1 && echo "    ✓ Schema SQL applied" || echo "    ⚠ Schema SQL warning"
 fi
 

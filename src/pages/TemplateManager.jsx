@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { useTemplates, useCreateTemplate, useUpdateTemplate, useDeleteTemplate, useSeedTemplates, useExportTemplates, useImportTemplates } from '../hooks/queries';
+import { useTemplates, useCreateTemplate, useUpdateTemplate, useDeleteTemplate, useSeedTemplates, useExportTemplates, useImportTemplates, usePublishTemplate, useUnpublishTemplate } from '../hooks/queries';
 import { toast } from 'sonner';
 import { SkeletonStudentGrid } from '../components/Skeletons';
 
@@ -19,6 +19,8 @@ function TemplateManager() {
   const { mutate: seedTemplates, isPending: isSeeding } = useSeedTemplates();
   const { mutate: exportTemplates } = useExportTemplates();
   const { mutate: importTemplates, isPending: isImporting } = useImportTemplates();
+  const { mutate: publishTemplate } = usePublishTemplate();
+  const { mutate: unpublishTemplate } = useUnpublishTemplate();
   const fileInputRef = useRef(null);
 
   const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].id);
@@ -173,6 +175,10 @@ function TemplateManager() {
             <span className="material-symbols-outlined text-[22px]">print</span>
             <span className="text-[15px] font-medium">Cetak Raport</span>
           </Link>
+          <Link className="flex items-center gap-4 rounded-2xl px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 transition-all" to="/marketplace">
+            <span className="material-symbols-outlined text-[22px]">storefront</span>
+            <span className="text-[15px] font-medium">Marketplace</span>
+          </Link>
         </nav>
       </aside>
 
@@ -211,6 +217,9 @@ function TemplateManager() {
                 <span className="material-symbols-outlined text-[16px]">download</span>{isImporting ? 'Mengimpor...' : 'Import'}
               </button>
               <input ref={fileInputRef} type="file" accept=".json" onChange={handleImportFile} className="hidden" />
+              <Link to="/marketplace" className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl text-sm font-bold hover:scale-105 active:scale-95 transition-all shadow-lg shadow-violet-500/20">
+                <span className="material-symbols-outlined text-[16px]">storefront</span>Marketplace
+              </Link>
             </div>
           </div>
 
@@ -262,6 +271,16 @@ function TemplateManager() {
                     </div>
                     {/* Actions */}
                     <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => t.isPublic
+                          ? unpublishTemplate(t.id, { onSuccess: () => toast.success('Dihapus dari marketplace'), onError: () => toast.error('Gagal') })
+                          : publishTemplate({ templateId: t.id }, { onSuccess: () => toast.success('Dipublikasikan ke marketplace!'), onError: () => toast.error('Gagal') })
+                        }
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${t.isPublic ? 'bg-violet-500/20 text-violet-400 hover:bg-violet-500/30' : 'bg-white/5 text-slate-400 hover:bg-violet-500/20 hover:text-violet-400'}`}
+                        title={t.isPublic ? 'Hapus dari Marketplace' : 'Publish ke Marketplace'}
+                      >
+                        <span className="material-symbols-outlined text-[14px]">{t.isPublic ? 'cloud_done' : 'cloud_upload'}</span>
+                      </button>
                       <button onClick={() => openEditModal(t)} className="w-7 h-7 rounded-lg bg-white/5 hover:bg-primary/30 flex items-center justify-center text-slate-400 hover:text-primary transition-all" title="Edit">
                         <span className="material-symbols-outlined text-[14px]">edit</span>
                       </button>
@@ -278,6 +297,7 @@ function TemplateManager() {
                     {t.groupName && <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-1 rounded-md">Kelas {t.groupName}</span>}
                     {t.semester && <span className="text-[10px] text-amber-400 font-bold bg-amber-500/10 px-2 py-1 rounded-md">{t.semester}</span>}
                     {!t.phase && !t.groupName && !t.semester && <span className="text-[10px] text-slate-500 font-bold bg-white/5 px-2 py-1 rounded-md">Semua</span>}
+                    {t.isPublic && <span className="text-[10px] text-violet-400 font-bold bg-violet-500/10 px-2 py-1 rounded-md ml-auto">📢 Public</span>}
                   </div>
 
                   {/* Delete Confirmation Overlay */}

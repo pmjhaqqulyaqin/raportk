@@ -486,3 +486,80 @@ export const usePublicRaport = (token) => {
     retry: false,
   });
 };
+
+// --- MARKETPLACE ---
+export const useMarketplaceTemplates = () => {
+  return useQuery({
+    queryKey: ['marketplace'],
+    queryFn: async () => {
+      const { data } = await apiClient.get('/marketplace');
+      return data;
+    },
+  });
+};
+
+export const useMyVotes = () => {
+  return useQuery({
+    queryKey: ['myVotes'],
+    queryFn: async () => {
+      const { data } = await apiClient.get('/marketplace/my-votes');
+      return data;
+    },
+  });
+};
+
+export const useVoteTemplate = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (templateId) => {
+      const { data } = await apiClient.post(`/marketplace/${templateId}/vote`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['marketplace'] });
+      queryClient.invalidateQueries({ queryKey: ['myVotes'] });
+    },
+  });
+};
+
+export const useForkMarketplace = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (templateId) => {
+      const { data } = await apiClient.post(`/marketplace/${templateId}/fork`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({ queryKey: ['marketplace'] });
+    },
+  });
+};
+
+export const usePublishTemplate = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ templateId, description }) => {
+      const { data } = await apiClient.post(`/marketplace/publish/${templateId}`, { description });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({ queryKey: ['marketplace'] });
+    },
+  });
+};
+
+export const useUnpublishTemplate = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (templateId) => {
+      const { data } = await apiClient.post(`/marketplace/unpublish/${templateId}`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({ queryKey: ['marketplace'] });
+    },
+  });
+};

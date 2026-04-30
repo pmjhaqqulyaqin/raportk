@@ -17,6 +17,7 @@ const SchoolHub = lazy(() => import('./pages/SchoolHub'));
 const PrintPreview = lazy(() => import('./pages/PrintPreview'));
 const Legal = lazy(() => import('./pages/Legal'));
 const PublicRaport = lazy(() => import('./pages/PublicRaport'));
+const Marketplace = lazy(() => import('./pages/Marketplace'));
 
 const queryClient = new QueryClient();
 
@@ -98,6 +99,7 @@ function App() {
             <Route path="/editor/:id" element={<ProtectedRoute><ReportEditor /></ProtectedRoute>} />
             <Route path="/templates" element={<ProtectedRoute><TemplateManager /></ProtectedRoute>} />
             <Route path="/school-hub" element={<ProtectedRoute><SchoolHub /></ProtectedRoute>} />
+            <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
             <Route path="/print" element={<ProtectedRoute><PrintPreview /></ProtectedRoute>} />
             <Route path="/print/:id" element={<ProtectedRoute><PrintPreview /></ProtectedRoute>} />
             <Route path="/legal" element={<Legal />} />

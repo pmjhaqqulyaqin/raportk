@@ -248,6 +248,21 @@ function Home() {
             </div>
           </div>
 
+          {/* Marketplace CTA */}
+          <Link to="/marketplace" className="block glass-card rounded-2xl lg:rounded-[2rem] p-4 lg:p-6 border-white/5 hover:border-violet-500/30 transition-all group relative overflow-hidden">
+            <div className="absolute -right-6 -top-6 w-24 h-24 bg-violet-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-violet-500/20 transition-all" />
+            <div className="flex items-center gap-3 lg:gap-5 relative z-10">
+              <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-violet-500/20 shrink-0">
+                <span className="material-symbols-outlined text-xl lg:text-2xl">storefront</span>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-xs lg:text-sm font-black text-white">Marketplace Template</h4>
+                <p className="text-[10px] lg:text-xs text-slate-400">Temukan & bagikan template narasi terbaik dari guru seluruh Indonesia</p>
+              </div>
+              <span className="material-symbols-outlined text-slate-500 group-hover:text-violet-400 transition-colors">arrow_forward</span>
+            </div>
+          </Link>
+
           {/* School Hub Chat / CTA */}
           {mySchool?.npsn ? (
             <div className="mt-3 lg:mt-6 glass-card rounded-2xl lg:rounded-[2rem] border-white/5 overflow-hidden">

@@ -18,6 +18,7 @@ import schoolsRouter from './routes/schools';
 import chatRouter from './routes/chat';
 import pushRouter from './routes/push';
 import publicRaportRouter from './routes/publicRaport';
+import marketplaceRouter from './routes/marketplace';
 
 // Load .env — Docker production: /app/.env.production, Dev: ../../.env
 const isProduction = process.env.NODE_ENV === 'production';
@@ -112,6 +113,7 @@ app.use('/api/upload', uploadRouter);
 app.use('/api/schools', schoolsRouter);
 app.use('/api/chat', chatLimiter, chatRouter);
 app.use('/api/push', pushRouter);
+app.use('/api/marketplace', marketplaceRouter);
 
 // Serve uploaded files (profile photos, etc.)
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
