@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useStudents, useSchoolInfo, useTemplates, useReport, useUpdateReport, useSeedTemplates, useCreateTemplate, useGenerateNarasi } from '../hooks/queries';
 import { replacePlaceholders } from '../lib/templateEngine';
 import { SkeletonReportEditor, SkeletonStudentPicker, EmptyState } from '../components/Skeletons';
+import { toast } from 'sonner';
 
 const tabToDbField = {
   'Nilai Agama & Budi Pekerti': 'agama',
@@ -424,7 +425,10 @@ function ReportEditor() {
                           <p className="text-xs text-amber-300/70 mt-0.5">Muat template bawaan Kurikulum Merdeka untuk mempercepat pengisian raport.</p>
                         </div>
                         <button
-                          onClick={() => seedTemplates()}
+                          onClick={() => seedTemplates(undefined, {
+                            onSuccess: () => toast.success('Template bawaan berhasil dimuat!'),
+                            onError: () => toast.error('Gagal memuat template bawaan'),
+                          })}
                           disabled={isSeeding}
                           className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-sm font-bold hover:from-amber-600 hover:to-orange-600 active:scale-95 transition-all shadow-lg shadow-amber-500/20 disabled:opacity-60 flex-shrink-0"
                         >

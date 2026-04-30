@@ -19,7 +19,16 @@ const Legal = lazy(() => import('./pages/Legal'));
 const PublicRaport = lazy(() => import('./pages/PublicRaport'));
 const Marketplace = lazy(() => import('./pages/Marketplace'));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 2 * 60 * 1000,      // 2 min — data stays fresh, no refetch on navigate
+      gcTime: 10 * 60 * 1000,        // 10 min — garbage collect unused cache
+      refetchOnWindowFocus: false,    // Don't refetch when user alt-tabs back
+      retry: 1,                       // Only 1 retry on failure (faster error feedback)
+    },
+  },
+});
 
 // ─── Loading Spinner ─────────────────────────────────────
 const PageLoader = () => (

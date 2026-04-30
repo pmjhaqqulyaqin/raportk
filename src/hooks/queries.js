@@ -456,7 +456,11 @@ export const useShareReport = () => {
       const { data } = await apiClient.post(`/reports/${studentId}/share`);
       return data;
     },
-    onSuccess: (_, studentId) => {
+    onSuccess: (data, studentId) => {
+      // Immediately update cache with the returned shareToken (no race condition)
+      queryClient.setQueryData(['report', studentId], (old) => {
+        return { ...(old || {}), shareToken: data.shareToken };
+      });
       queryClient.invalidateQueries({ queryKey: ['report', studentId] });
     },
   });
@@ -470,6 +474,11 @@ export const useRevokeShare = () => {
       return data;
     },
     onSuccess: (_, studentId) => {
+      // Immediately clear shareToken from cache
+      queryClient.setQueryData(['report', studentId], (old) => {
+        if (!old) return old;
+        return { ...old, shareToken: null };
+      });
       queryClient.invalidateQueries({ queryKey: ['report', studentId] });
     },
   });
@@ -495,6 +504,7 @@ export const useMarketplaceTemplates = () => {
       const { data } = await apiClient.get('/marketplace');
       return data;
     },
+    staleTime: 5 * 60 * 1000, // 5 min — marketplace data changes infrequently
   });
 };
 

@@ -130,7 +130,10 @@ export const templates = pgTable("templates", {
     forkCount: integer("fork_count").default(0),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    userIdIdx: index("templates_user_id_idx").on(t.userId),
+    isPublicIdx: index("templates_is_public_idx").on(t.isPublic),
+}));
 
 // Marketplace upvotes
 export const marketplaceVotes = pgTable("marketplace_votes", {
@@ -138,7 +141,10 @@ export const marketplaceVotes = pgTable("marketplace_votes", {
     templateId: uuid("template_id").notNull().references(() => templates.id, { onDelete: 'cascade' }),
     userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    templateIdIdx: index("mv_template_id_idx").on(t.templateId),
+    userIdIdx: index("mv_user_id_idx").on(t.userId),
+}));
 
 // ==========================================
 // NPSN-Based School Collaboration Tables

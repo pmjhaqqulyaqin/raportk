@@ -71,11 +71,16 @@ router.post('/:studentId/share', async (req, res) => {
     const { studentId } = req.params;
 
     try {
-        const existing = await db.select().from(reports)
+        let existing = await db.select().from(reports)
             .where(and(eq(reports.studentId, studentId), eq(reports.userId, userId)));
 
+        // Auto-create empty report if none exists yet
         if (!existing.length) {
-            return res.status(404).json({ error: 'Raport belum dibuat untuk siswa ini' });
+            const created = await db.insert(reports).values({
+                userId,
+                studentId,
+            }).returning();
+            existing = created;
         }
 
         // If already has token, return it
@@ -92,6 +97,7 @@ router.post('/:studentId/share', async (req, res) => {
 
         res.json({ shareToken: token });
     } catch (error) {
+        console.error('Share report error:', error);
         res.status(500).json({ error: 'Gagal membuat link berbagi' });
     }
 });

@@ -205,7 +205,10 @@ function TemplateManager() {
             </div>
             <div className="flex flex-wrap gap-2 relative z-10">
               {totalCount === 0 && (
-                <button onClick={() => seedTemplates()} disabled={isSeeding} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-sm font-bold hover:scale-105 active:scale-95 transition-all shadow-lg disabled:opacity-60">
+                <button onClick={() => seedTemplates(undefined, {
+                  onSuccess: () => toast.success('Template bawaan berhasil dimuat!'),
+                  onError: () => toast.error('Gagal memuat template bawaan'),
+                })} disabled={isSeeding} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-sm font-bold hover:scale-105 active:scale-95 transition-all shadow-lg disabled:opacity-60">
                   <span className="material-symbols-outlined text-[16px]">{isSeeding ? 'sync' : 'download'}</span>
                   {isSeeding ? 'Memuat...' : 'Muat Bawaan'}
                 </button>

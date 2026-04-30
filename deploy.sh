@@ -143,6 +143,12 @@ else
             user_id TEXT NOT NULL REFERENCES \"user\"(id) ON DELETE CASCADE,
             created_at TIMESTAMP DEFAULT NOW() NOT NULL
         );
+
+        -- v1.7: Performance indexes
+        CREATE INDEX IF NOT EXISTS templates_user_id_idx ON templates(user_id);
+        CREATE INDEX IF NOT EXISTS templates_is_public_idx ON templates(is_public);
+        CREATE INDEX IF NOT EXISTS mv_template_id_idx ON marketplace_votes(template_id);
+        CREATE INDEX IF NOT EXISTS mv_user_id_idx ON marketplace_votes(user_id);
     " 2>&1 && echo "    ✓ Schema SQL applied" || echo "    ⚠ Schema SQL warning"
 fi
 
