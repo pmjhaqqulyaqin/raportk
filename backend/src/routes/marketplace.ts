@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { db } from '../db';
 import { templates, marketplaceVotes, user } from '../db/schema';
 import { eq, desc, sql, and } from 'drizzle-orm';
@@ -7,7 +7,7 @@ import { requireAuth } from '../middleware/authMiddleware';
 const router = Router();
 
 // GET /api/marketplace — Public: Browse all public templates (sorted by votes)
-router.get('/', async (_req, res) => {
+router.get('/', async (_req: Request, res: Response) => {
     try {
         const data = await db.select({
             id: templates.id,
@@ -37,9 +37,9 @@ router.get('/', async (_req, res) => {
 });
 
 // POST /api/marketplace/:templateId/vote — Toggle upvote (auth required)
-router.post('/:templateId/vote', requireAuth, async (req, res) => {
+router.post('/:templateId/vote', requireAuth, async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
-    const { templateId } = req.params;
+    const templateId = req.params.templateId as string;
 
     try {
         // Check if already voted
@@ -62,7 +62,7 @@ router.post('/:templateId/vote', requireAuth, async (req, res) => {
 });
 
 // GET /api/marketplace/my-votes — Get current user's votes (auth required)
-router.get('/my-votes', requireAuth, async (req, res) => {
+router.get('/my-votes', requireAuth, async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
     try {
         const votes = await db.select({ templateId: marketplaceVotes.templateId })
@@ -74,9 +74,9 @@ router.get('/my-votes', requireAuth, async (req, res) => {
 });
 
 // POST /api/marketplace/:templateId/fork — Fork/copy template to own collection (auth required)
-router.post('/:templateId/fork', requireAuth, async (req, res) => {
+router.post('/:templateId/fork', requireAuth, async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
-    const { templateId } = req.params;
+    const templateId = req.params.templateId as string;
 
     try {
         // Get the source template
@@ -111,9 +111,9 @@ router.post('/:templateId/fork', requireAuth, async (req, res) => {
 });
 
 // POST /api/marketplace/publish/:templateId — Publish own template to marketplace (auth required)
-router.post('/publish/:templateId', requireAuth, async (req, res) => {
+router.post('/publish/:templateId', requireAuth, async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
-    const { templateId } = req.params;
+    const templateId = req.params.templateId as string;
     const { description } = req.body;
 
     try {
@@ -135,9 +135,9 @@ router.post('/publish/:templateId', requireAuth, async (req, res) => {
 });
 
 // POST /api/marketplace/unpublish/:templateId — Remove from marketplace (auth required)
-router.post('/unpublish/:templateId', requireAuth, async (req, res) => {
+router.post('/unpublish/:templateId', requireAuth, async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
-    const { templateId } = req.params;
+    const templateId = req.params.templateId as string;
 
     try {
         await db.update(templates)
