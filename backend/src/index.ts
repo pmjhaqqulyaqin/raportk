@@ -6,6 +6,7 @@ import path from 'path';
 import { log } from './lib/logger';
 import { auth } from './lib/auth';
 import { toNodeHandler } from "better-auth/node";
+import { runMigrations } from './db/migrate';
 
 import studentsRouter from './routes/students';
 import schoolInfoRouter from './routes/schoolInfo';
@@ -141,6 +142,14 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ error: 'Terjadi kesalahan internal server' });
 });
 
-app.listen(port, () => {
-  log.info('Server', `Listening on port ${port} (${isProduction ? 'production' : 'development'})`);
+// Run migrations then start server
+runMigrations().then(() => {
+  app.listen(port, () => {
+    log.info('Server', `Listening on port ${port} (${isProduction ? 'production' : 'development'})`);
+  });
+}).catch((err) => {
+  console.error('Migration failed, starting server anyway:', err);
+  app.listen(port, () => {
+    log.info('Server', `Listening on port ${port} (${isProduction ? 'production' : 'development'})`);
+  });
 });
