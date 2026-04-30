@@ -24,6 +24,18 @@ if (!isProduction) {
   dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 }
 
+// ─── Global Error Tracking (Phase 5) ─────────────────────
+process.on('uncaughtException', (err) => {
+  log.error('UncaughtException', err.message);
+  console.error(err);
+  process.exit(1); // Exit to let Docker restart the container cleanly
+});
+
+process.on('unhandledRejection', (reason) => {
+  log.error('UnhandledRejection', `Reason: ${reason}`);
+  console.error(reason);
+});
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -115,6 +127,13 @@ if (isProduction) {
     res.sendFile(path.resolve(frontendPath, 'index.html'));
   });
 }
+
+// Global API Error Middleware (must be registered last)
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  log.error('ExpressError', `${req.method} ${req.url} - ${err.message}`);
+  console.error(err.stack);
+  res.status(500).json({ error: 'Terjadi kesalahan internal server' });
+});
 
 app.listen(port, () => {
   log.info('Server', `Listening on port ${port} (${isProduction ? 'production' : 'development'})`);

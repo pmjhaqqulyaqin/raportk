@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, boolean, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, boolean, uuid, index } from "drizzle-orm/pg-core";
 
 // Better Auth Tables
 export const user = pgTable("user", {
@@ -91,7 +91,10 @@ export const students = pgTable("students", {
     birthDate: text("birth_date"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    userIdIdx: index("students_user_id_idx").on(t.userId),
+    classIdIdx: index("students_class_id_idx").on(t.classId),
+}));
 
 export const reports = pgTable("reports", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -107,7 +110,9 @@ export const reports = pgTable("reports", {
     parentReflection: text("parent_reflection"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    studentIdIdx: index("reports_student_id_idx").on(t.studentId),
+}));
 
 export const templates = pgTable("templates", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -165,7 +170,9 @@ export const activityLogs = pgTable("activity_logs", {
     action: text("action").notNull(),
     payload: text("payload"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    schoolIdIdx: index("activity_logs_school_id_idx").on(t.schoolId),
+}));
 
 // Chat messages per school hub (recipientId NULL = group, non-NULL = DM)
 export const chatMessages = pgTable("chat_messages", {
@@ -176,7 +183,9 @@ export const chatMessages = pgTable("chat_messages", {
     message: text("message").notNull(),
     replyTo: uuid("reply_to"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => ({
+    schoolCreatedAtIdx: index("chat_messages_school_time_idx").on(t.schoolId, t.createdAt),
+}));
 
 // Push notification subscriptions
 export const pushSubscriptions = pgTable("push_subscriptions", {

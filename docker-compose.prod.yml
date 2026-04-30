@@ -15,6 +15,14 @@ services:
     restart: unless-stopped
     volumes:
       - uploads:/app/uploads
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          cpus: '0.10'
+          memory: 256M
 
   postgres:
     image: postgres:15-alpine
@@ -28,6 +36,37 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.10'
+          memory: 256M
+
+  db-backup:
+    image: prodrigestivill/postgres-backup-local:15
+    container_name: raportk-db-backup
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      - POSTGRES_HOST=postgres
+      - SCHEDULE=@every 6h
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=2
+      - HEALTHCHECK_PORT=8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backups:/backups
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
 
 volumes:
   pgdata:
