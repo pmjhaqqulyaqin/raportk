@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTemplates, useCreateTemplate, useUpdateTemplate, useDeleteTemplate, useSeedTemplates, useExportTemplates, useImportTemplates } from '../hooks/queries';
 import { toast } from 'sonner';
+import { SkeletonStudentGrid } from '../components/Skeletons';
 
 const CATEGORIES = [
   { id: 'Nilai Agama & Budi Pekerti', icon: 'auto_awesome', color: 'from-amber-400 to-orange-500' },
@@ -100,11 +101,44 @@ function TemplateManager() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-white">
-        <div className="flex flex-col items-center gap-4">
-          <span className="material-symbols-outlined text-4xl animate-spin">sync</span>
-          <p className="font-bold">Memuat template...</p>
-        </div>
+      <div className="font-sans overflow-x-hidden min-h-screen text-white pb-20">
+        <main className="lg:ml-72 min-h-screen">
+          <header className="sticky top-0 z-40 flex h-14 w-full items-center px-4 lg:px-10 glass-panel border-b border-white/5">
+            <div className="w-36 h-4 bg-white/10 rounded animate-pulse" />
+          </header>
+          <div className="p-3 lg:p-10 space-y-4 max-w-[1200px] mx-auto animate-pulse">
+            {/* Hero skeleton */}
+            <div className="glass-card rounded-2xl lg:rounded-[2rem] p-4 lg:p-8 border-white/5">
+              <div className="flex items-center gap-3 lg:gap-5">
+                <div className="h-10 w-10 lg:h-16 lg:w-16 rounded-xl lg:rounded-[1.5rem] bg-white/10" />
+                <div className="space-y-2">
+                  <div className="h-5 w-40 bg-white/10 rounded" />
+                  <div className="h-3 w-56 bg-white/5 rounded" />
+                </div>
+              </div>
+            </div>
+            {/* Category tabs skeleton */}
+            <div className="flex gap-3">
+              {[1,2,3,4].map(i => <div key={i} className="h-10 w-28 bg-white/5 rounded-xl" />)}
+            </div>
+            {/* Cards skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="glass-card rounded-2xl p-5 border-white/5 space-y-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-white/10" />
+                    <div className="h-4 w-28 bg-white/10 rounded" />
+                  </div>
+                  <div className="h-16 bg-white/5 rounded-lg" />
+                  <div className="flex gap-2 pt-2">
+                    <div className="h-5 w-14 bg-white/5 rounded-md" />
+                    <div className="h-5 w-14 bg-white/5 rounded-md" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </main>
       </div>
     );
   }

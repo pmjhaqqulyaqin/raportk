@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useStudents, useSchoolInfo, useTemplates, useReport, useUpdateReport, useSeedTemplates, useCreateTemplate, useGenerateNarasi } from '../hooks/queries';
 import { replacePlaceholders } from '../lib/templateEngine';
+import { SkeletonReportEditor, SkeletonStudentPicker, EmptyState } from '../components/Skeletons';
 
 const tabToDbField = {
   'Nilai Agama & Budi Pekerti': 'agama',
@@ -164,11 +165,15 @@ function ReportEditor() {
 
   if (isStudentsLoading || isSchoolLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-white">
-        <div className="flex flex-col items-center gap-4">
-          <span className="material-symbols-outlined text-4xl animate-spin" data-icon="sync">sync</span>
-          <p className="font-bold">Memuat data...</p>
-        </div>
+      <div className="font-sans overflow-x-hidden min-h-screen text-white pb-20">
+        <main className="lg:ml-72 min-h-screen">
+          <header className="sticky top-0 z-40 flex h-14 w-full items-center px-4 lg:px-10 glass-panel border-b border-white/5">
+            <div className="w-32 h-4 bg-white/10 rounded animate-pulse" />
+          </header>
+          <div className="p-3 lg:p-10 max-w-[1440px] mx-auto">
+            <SkeletonReportEditor />
+          </div>
+        </main>
       </div>
     );
   }
@@ -215,7 +220,7 @@ function ReportEditor() {
             </div>
             
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 lg:gap-6">
-              {students.map(s => (
+              {students.length > 0 ? students.map(s => (
                 <Link to={`/editor/${s.id}`} key={s.id} className="glass-card rounded-2xl lg:rounded-[1.5rem] p-3 lg:p-6 flex flex-col items-center gap-2 lg:gap-4 hover:scale-105 transition-all border-white/5 hover:border-primary/50 group">
                   <div className="w-10 h-10 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-base lg:text-2xl font-black shadow-lg">
                     {s.name.charAt(0).toUpperCase()}
@@ -228,7 +233,15 @@ function ReportEditor() {
                     Pilih Siswa
                   </div>
                 </Link>
-              ))}
+              )) : (
+                <EmptyState
+                  icon="group_add"
+                  title="Belum ada data murid"
+                  subtitle="Tambahkan murid terlebih dahulu di halaman Pengaturan sebelum mengisi nilai raport."
+                  actionLabel="Ke Halaman Pengaturan"
+                  actionLink="/setup"
+                />
+              )}
             </div>
           </div>
         </main>

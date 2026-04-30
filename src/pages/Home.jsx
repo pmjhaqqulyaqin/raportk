@@ -5,6 +5,7 @@ import { useSession, authClient } from '../lib/authClient';
 import apiClient from '../lib/apiClient';
 import ChatBox from '../components/ChatBox';
 import { toast } from 'sonner';
+import { EmptyState } from '../components/Skeletons';
 
 function Home() {
   const { data: session } = useSession();
@@ -308,14 +309,13 @@ function Home() {
               ))}
 
               {students.length === 0 && (
-                <div className="sm:col-span-2 lg:col-span-3 py-10 flex flex-col items-center justify-center text-center glass-card rounded-2xl">
-                  <span className="material-symbols-outlined text-slate-500 text-4xl mb-3">group_add</span>
-                  <p className="text-sm font-bold text-white mb-1">Belum ada data murid</p>
-                  <p className="text-xs text-slate-400 mb-4">Tambahkan murid di halaman Pengaturan.</p>
-                  <Link to="/setup" className="px-5 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/80 transition-all">
-                    Tambah Murid
-                  </Link>
-                </div>
+                <EmptyState
+                  icon="group_add"
+                  title="Belum ada data murid"
+                  subtitle="Tambahkan murid di halaman Pengaturan untuk mulai mengelola raport."
+                  actionLabel="Tambah Murid"
+                  actionLink="/setup"
+                />
               )}
             </div>
           </section>

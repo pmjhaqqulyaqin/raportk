@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useSchoolInfo, useUpdateSchoolInfo, useStudents, useCreateStudent, useDeleteStudent, useImportExcel } from '../hooks/queries';
 import apiClient from '../lib/apiClient';
 import { toast } from 'sonner';
+import { SkeletonSetupForm, SkeletonStudentGrid, EmptyState } from '../components/Skeletons';
 
 function SetupSekolah() {
   const { data: schoolInfo, isLoading } = useSchoolInfo();
@@ -103,7 +104,18 @@ function SetupSekolah() {
   };
 
   if (isLoading) {
-    return <div className="min-h-screen bg-[#0F172A] flex items-center justify-center text-white">Memuat data sekolah...</div>;
+    return (
+      <div className="font-sans overflow-x-hidden min-h-screen text-white pb-20">
+        <main className="lg:ml-72 min-h-screen">
+          <header className="sticky top-0 z-40 flex h-14 w-full items-center px-4 lg:px-10 glass-panel border-b border-white/5">
+            <div className="w-32 h-4 bg-white/10 rounded animate-pulse" />
+          </header>
+          <div className="p-3 lg:p-10 max-w-[1000px] mx-auto">
+            <SkeletonSetupForm />
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -406,12 +418,21 @@ function SetupSekolah() {
                     </Link>
                   </div>
                 ))}
-                {filteredStudents.length === 0 && (
-                  <div className="sm:col-span-2 xl:col-span-3 py-12 flex flex-col items-center justify-center text-center glass-card rounded-2xl">
-                    <span className="material-symbols-outlined text-slate-500 text-4xl mb-3">search_off</span>
-                    <p className="text-sm font-bold text-white mb-1">Tidak ada murid ditemukan</p>
-                    <p className="text-xs text-slate-400">Coba ubah kata kunci atau tambahkan murid baru.</p>
-                  </div>
+                {filteredStudents.length === 0 && searchQuery && (
+                  <EmptyState
+                    icon="search_off"
+                    title="Tidak ada murid ditemukan"
+                    subtitle={`Tidak ada hasil untuk "${searchQuery}". Coba ubah kata kunci pencarian.`}
+                  />
+                )}
+                {filteredStudents.length === 0 && !searchQuery && (
+                  <EmptyState
+                    icon="group_add"
+                    title="Belum ada data murid"
+                    subtitle="Tambahkan murid baru secara manual atau import dari file Excel untuk memulai."
+                    actionLabel="Tambah Murid Baru"
+                    onAction={() => setShowAddModal(true)}
+                  />
                 )}
               </div>
 
