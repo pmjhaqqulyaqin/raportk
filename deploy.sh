@@ -61,103 +61,13 @@ DB_NAME=$(grep -E '^POSTGRES_DB=' "$APP_DIR/.env.production" | cut -d'=' -f2)
 DB_USER=${DB_USER:-raportk_user}
 DB_NAME=${DB_NAME:-raportk}
 
-# 4a. Schema migrations (drizzle-kit or raw SQL fallback)
-if docker exec raportk-app npx drizzle-kit push --config=drizzle.config.ts 2>&1; then
-    echo "    ✓ Drizzle schema migrations applied"
-else
-    echo "    ⚠ Drizzle-kit failed, applying schema SQL directly..."
-    docker exec raportk-db psql -U "$DB_USER" -d "$DB_NAME" -c "
-        ALTER TABLE school_info ADD COLUMN IF NOT EXISTS npsn TEXT;
-        ALTER TABLE students ADD COLUMN IF NOT EXISTS birth_place TEXT;
-        ALTER TABLE students ADD COLUMN IF NOT EXISTS birth_date TEXT;
-
-        -- v1.3: School collaboration tables
-        CREATE TABLE IF NOT EXISTS schools (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            npsn TEXT NOT NULL UNIQUE,
-            name TEXT NOT NULL,
-            address TEXT,
-            logo_url TEXT,
-            created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-            updated_at TIMESTAMP DEFAULT NOW() NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS school_members (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
-            user_id TEXT NOT NULL REFERENCES \"user\"(id) ON DELETE CASCADE,
-            role TEXT DEFAULT 'guru' NOT NULL,
-            class_group TEXT,
-            joined_at TIMESTAMP DEFAULT NOW() NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS shared_templates (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
-            school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
-            shared_by TEXT NOT NULL REFERENCES \"user\"(id) ON DELETE CASCADE,
-            is_official BOOLEAN DEFAULT FALSE,
-            shared_at TIMESTAMP DEFAULT NOW() NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS activity_logs (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
-            actor_id TEXT NOT NULL REFERENCES \"user\"(id) ON DELETE CASCADE,
-            action TEXT NOT NULL,
-            payload TEXT,
-            created_at TIMESTAMP DEFAULT NOW() NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS chat_messages (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
-            sender_id TEXT NOT NULL REFERENCES \"user\"(id) ON DELETE CASCADE,
-            recipient_id TEXT,
-            message TEXT NOT NULL,
-            reply_to UUID,
-            created_at TIMESTAMP DEFAULT NOW() NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS idx_chat_school_time ON chat_messages(school_id, created_at DESC);
-        CREATE INDEX IF NOT EXISTS idx_students_user_class ON students(user_id, class_id);
-        CREATE INDEX IF NOT EXISTS idx_reports_user_student ON reports(user_id, student_id);
-        
-        -- Add recipient_id to existing table if missing
-        ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS recipient_id TEXT;
-        CREATE TABLE IF NOT EXISTS push_subscriptions (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            user_id TEXT NOT NULL REFERENCES \"user\"(id) ON DELETE CASCADE,
-            endpoint TEXT NOT NULL UNIQUE,
-            p256dh TEXT NOT NULL,
-            auth TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT NOW() NOT NULL
-        );
-
-        -- v1.5: Parent Portal share token
-        ALTER TABLE reports ADD COLUMN IF NOT EXISTS share_token TEXT UNIQUE;
-        CREATE INDEX IF NOT EXISTS reports_share_token_idx ON reports(share_token);
-
-        -- v1.6: Marketplace
-        ALTER TABLE templates ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT FALSE;
-        ALTER TABLE templates ADD COLUMN IF NOT EXISTS description TEXT;
-        ALTER TABLE templates ADD COLUMN IF NOT EXISTS fork_count INTEGER DEFAULT 0;
-        CREATE TABLE IF NOT EXISTS marketplace_votes (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
-            user_id TEXT NOT NULL REFERENCES \"user\"(id) ON DELETE CASCADE,
-            created_at TIMESTAMP DEFAULT NOW() NOT NULL
-        );
-
-        -- v1.7: Performance indexes
-        CREATE INDEX IF NOT EXISTS templates_user_id_idx ON templates(user_id);
-        CREATE INDEX IF NOT EXISTS templates_is_public_idx ON templates(is_public);
-        CREATE INDEX IF NOT EXISTS mv_template_id_idx ON marketplace_votes(template_id);
-        CREATE INDEX IF NOT EXISTS mv_user_id_idx ON marketplace_votes(user_id);
-    " 2>&1 && echo "    ✓ Schema SQL applied" || echo "    ⚠ Schema SQL warning"
-fi
-
-# 4b. Data fixes — ALWAYS run (safe & idempotent)
-echo "    🔧 Running data fixes..."
-docker exec raportk-db psql -U "$DB_USER" -d "$DB_NAME" -c "
-    -- Fix corrupted base64/blob image data in user table (causes session hang)
-    UPDATE \"user\" SET image = NULL WHERE image LIKE 'data:%' OR image LIKE 'blob:%' OR length(image) > 500;
-" 2>&1 && echo "    ✓ Data fixes applied" || echo "    ⚠ Data fix warning"
+# Copy migration SQL file into the DB container and execute it
+# This avoids all bash escaping issues with inline SQL
+echo "    📄 Applying migrations from SQL file..."
+docker cp "$APP_DIR/backend/migrations.sql" raportk-db:/tmp/migrations.sql
+docker exec raportk-db psql -U "$DB_USER" -d "$DB_NAME" -f /tmp/migrations.sql 2>&1 && \
+    echo "    ✓ Database migrations applied successfully" || \
+    echo "    ⚠ Some migration warnings (usually safe to ignore for IF NOT EXISTS)"
 
 echo "    ✓ Migrations complete"
 

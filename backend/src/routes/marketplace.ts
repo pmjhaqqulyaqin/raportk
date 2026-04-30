@@ -57,6 +57,7 @@ router.post('/:templateId/vote', requireAuth, async (req: Request, res: Response
             res.json({ voted: true });
         }
     } catch (error) {
+        console.error('Vote error:', error);
         res.status(500).json({ error: 'Gagal memproses vote' });
     }
 });
@@ -69,6 +70,7 @@ router.get('/my-votes', requireAuth, async (req: Request, res: Response) => {
             .from(marketplaceVotes).where(eq(marketplaceVotes.userId, userId));
         res.json(votes.map(v => v.templateId));
     } catch (error) {
+        console.error('My votes error:', error);
         res.status(500).json({ error: 'Gagal memuat votes' });
     }
 });
@@ -106,6 +108,7 @@ router.post('/:templateId/fork', requireAuth, async (req: Request, res: Response
 
         res.json({ message: 'Template berhasil disalin ke koleksi Anda' });
     } catch (error) {
+        console.error('Fork error:', error);
         res.status(500).json({ error: 'Gagal menyalin template' });
     }
 });
@@ -130,6 +133,7 @@ router.post('/publish/:templateId', requireAuth, async (req: Request, res: Respo
 
         res.json({ message: 'Template berhasil dipublikasikan' });
     } catch (error) {
+        console.error('Publish error:', error);
         res.status(500).json({ error: 'Gagal mempublikasikan template' });
     }
 });
@@ -146,6 +150,7 @@ router.post('/unpublish/:templateId', requireAuth, async (req: Request, res: Res
 
         res.json({ message: 'Template dihapus dari marketplace' });
     } catch (error) {
+        console.error('Unpublish error:', error);
         res.status(500).json({ error: 'Gagal menghapus dari marketplace' });
     }
 });

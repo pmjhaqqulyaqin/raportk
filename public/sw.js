@@ -3,7 +3,7 @@
  * Provides offline caching, install capability, and faster repeat loads.
  */
 
-const CACHE_NAME = 'cetakraport-pwa-v2';
+const CACHE_NAME = 'cetakraport-pwa-v3';
 
 const PRECACHE_URLS = [
   '/',

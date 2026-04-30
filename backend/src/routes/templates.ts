@@ -13,6 +13,7 @@ router.get('/', async (req, res) => {
         const data = await db.select().from(templates).where(eq(templates.userId, userId));
         res.json(data);
     } catch (error) {
+        console.error('Fetch templates error:', error);
         res.status(500).json({ error: 'Failed to fetch templates' });
     }
 });
@@ -30,6 +31,7 @@ router.post('/', async (req, res) => {
         }).returning();
         res.status(201).json(created[0]);
     } catch (error) {
+        console.error('Create template error:', error);
         res.status(500).json({ error: 'Failed to create template' });
     }
 });
@@ -62,6 +64,7 @@ router.post('/seed', async (req, res) => {
 
         res.status(201).json({ message: 'Default templates created', count: created.length, data: created });
     } catch (error) {
+        console.error('Seed templates error:', error);
         res.status(500).json({ error: 'Failed to seed templates' });
     }
 });
@@ -86,6 +89,7 @@ router.get('/export', async (req, res) => {
         };
         res.json(exportData);
     } catch (error) {
+        console.error('Export templates error:', error);
         res.status(500).json({ error: 'Failed to export templates' });
     }
 });
@@ -119,6 +123,7 @@ router.post('/import', async (req, res) => {
 
         res.status(201).json({ message: `${created.length} templates imported`, count: created.length });
     } catch (error) {
+        console.error('Import templates error:', error);
         res.status(500).json({ error: 'Failed to import templates' });
     }
 });
@@ -142,6 +147,7 @@ router.put('/:id', async (req, res) => {
         }
         res.json(updated[0]);
     } catch (error) {
+        console.error('Update template error:', error);
         res.status(500).json({ error: 'Failed to update template' });
     }
 });
@@ -160,6 +166,7 @@ router.delete('/:id', async (req, res) => {
         }
         res.json({ success: true });
     } catch (error) {
+        console.error('Delete template error:', error);
         res.status(500).json({ error: 'Failed to delete template' });
     }
 });
