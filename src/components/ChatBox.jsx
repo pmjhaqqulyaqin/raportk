@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useChatHistory, useSendChat, useDeleteChat, useEditChat, useConversations, useSchoolMembers } from '../hooks/queries';
+import { toast } from 'sonner';
 
 const nameColors = ['#60a5fa','#f472b6','#34d399','#fbbf24','#a78bfa','#fb923c','#2dd4bf','#f87171'];
 const getColor = (name) => nameColors[(name||'').split('').reduce((a,c) => a+c.charCodeAt(0),0) % nameColors.length];
@@ -64,10 +65,9 @@ function ChatBox({ npsn, compact = false, currentUserId }) {
   };
 
   const handleDelete = (messageId) => {
-    if (window.confirm('Hapus pesan ini?')) {
-      deleteChat({ npsn, messageId });
-      setActionMsg(null);
-    }
+    deleteChat({ npsn, messageId });
+    setActionMsg(null);
+    toast.success('Pesan dihapus');
   };
 
   const handleEdit = (m) => {

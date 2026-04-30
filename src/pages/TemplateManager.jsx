@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTemplates, useCreateTemplate, useUpdateTemplate, useDeleteTemplate, useSeedTemplates, useExportTemplates, useImportTemplates } from '../hooks/queries';
+import { toast } from 'sonner';
 
 const CATEGORIES = [
   { id: 'Nilai Agama & Budi Pekerti', icon: 'auto_awesome', color: 'from-amber-400 to-orange-500' },
@@ -73,9 +74,12 @@ function TemplateManager() {
       try {
         const data = JSON.parse(ev.target.result);
         const tpls = data.templates || data;
-        if (!Array.isArray(tpls)) return alert('Format file tidak valid');
-        importTemplates({ templates: tpls, mode: 'merge' });
-      } catch { alert('Gagal membaca file JSON'); }
+        if (!Array.isArray(tpls)) return toast.error('Format file tidak valid');
+        importTemplates({ templates: tpls, mode: 'merge' }, {
+          onSuccess: () => toast.success('Template berhasil diimpor'),
+          onError: () => toast.error('Gagal mengimpor template'),
+        });
+      } catch { toast.error('Gagal membaca file JSON'); }
     };
     reader.readAsText(file);
     e.target.value = '';

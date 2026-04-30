@@ -115,6 +115,9 @@ else
             created_at TIMESTAMP DEFAULT NOW() NOT NULL
         );
         CREATE INDEX IF NOT EXISTS idx_chat_school_time ON chat_messages(school_id, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_students_user_class ON students(user_id, class_id);
+        CREATE INDEX IF NOT EXISTS idx_reports_user_student ON reports(user_id, student_id);
+        
         -- Add recipient_id to existing table if missing
         ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS recipient_id TEXT;
         CREATE TABLE IF NOT EXISTS push_subscriptions (

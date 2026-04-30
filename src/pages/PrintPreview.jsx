@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useStudents, useSchoolInfo, useReport, useAllReports } from '../hooks/queries';
 import { replacePlaceholders } from '../lib/templateEngine';
+import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
 function PrintPreview() {
@@ -36,7 +37,7 @@ function PrintPreview() {
   };
 
   const handleExportLeger = () => {
-    if (!students.length) return alert('Belum ada data siswa.');
+    if (!students.length) return toast.error('Belum ada data siswa.');
 
     const headerRows = [
       ['LEGER PENILAIAN KURIKULUM MERDEKA'],

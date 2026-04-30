@@ -4,6 +4,7 @@ import { useStudents, useSchoolInfo, useMySchool } from '../hooks/queries';
 import { useSession, authClient } from '../lib/authClient';
 import apiClient from '../lib/apiClient';
 import ChatBox from '../components/ChatBox';
+import { toast } from 'sonner';
 
 function Home() {
   const { data: session } = useSession();
@@ -383,7 +384,7 @@ function Home() {
                   });
                   setShowUploadPhoto(false); setPhotoPreview(null); setProfilePhoto(null);
                   window.location.reload();
-                } catch { alert('Gagal upload foto.'); }
+                } catch { toast.error('Gagal upload foto.'); }
                 setUploadSaving(false);
               }} className="flex-[2] py-2.5 bg-gradient-to-r from-secondary to-primary text-white rounded-lg text-xs font-bold active:scale-95 transition-all disabled:opacity-40">
                 {uploadSaving ? 'Mengupload...' : 'Simpan Foto'}

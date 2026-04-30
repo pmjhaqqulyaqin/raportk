@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useSchoolInfo, useUpdateSchoolInfo, useStudents, useCreateStudent, useDeleteStudent, useImportExcel } from '../hooks/queries';
 import apiClient from '../lib/apiClient';
+import { toast } from 'sonner';
 
 function SetupSekolah() {
   const { data: schoolInfo, isLoading } = useSchoolInfo();
@@ -39,9 +40,10 @@ function SetupSekolah() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (window.confirm(`Yakin ingin mengimpor data dari ${file.name}?`)) {
+      toast.loading('Mengimpor data...', { id: 'import' });
       importExcelMutate(file, {
-        onSuccess: (data) => { alert(`Berhasil mengimpor ${data.count} murid!`); e.target.value = null; },
-        onError: () => { alert('Gagal mengimpor data. Pastikan format sesuai template.'); e.target.value = null; }
+        onSuccess: (data) => { toast.success(`Berhasil mengimpor ${data.count} murid!`, { id: 'import' }); e.target.value = null; },
+        onError: () => { toast.error('Gagal mengimpor data. Pastikan format sesuai template.', { id: 'import' }); e.target.value = null; }
       });
     } else { e.target.value = null; }
   };
@@ -56,7 +58,7 @@ function SetupSekolah() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch { alert('Gagal mengunduh template.'); }
+    } catch { toast.error('Gagal mengunduh template.'); }
   };
 
   const handleBackup = async () => {
@@ -69,7 +71,7 @@ function SetupSekolah() {
       document.body.appendChild(link);
       link.click();
     } catch (err) {
-      alert("Gagal melakukan backup data.");
+      toast.error("Gagal melakukan backup data.");
     }
   };
 
@@ -91,7 +93,11 @@ function SetupSekolah() {
     updateSchoolInfo(formData, {
       onSuccess: () => {
         setIsSaved(true);
+        toast.success("Pengaturan berhasil disimpan");
         setTimeout(() => setIsSaved(false), 3000);
+      },
+      onError: () => {
+        toast.error("Gagal menyimpan pengaturan");
       }
     });
   };
@@ -368,7 +374,7 @@ function SetupSekolah() {
                       <Link to={`/print/${student.id}`} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/20 flex items-center justify-center text-slate-300 transition-colors">
                         <span className="material-symbols-outlined text-[15px]">print</span>
                       </Link>
-                      <button onClick={() => { if(window.confirm('Hapus murid ini? Data nilai akan hilang.')) deleteStudentMutate(student.id); }}
+                      <button onClick={() => { if(window.confirm('Hapus murid ini? Data nilai akan hilang.')) { deleteStudentMutate(student.id); toast.success('Murid dihapus'); } }}
                         className="w-8 h-8 rounded-full bg-accent/10 hover:bg-accent flex items-center justify-center text-accent hover:text-white transition-colors">
                         <span className="material-symbols-outlined text-[15px]">delete</span>
                       </button>
@@ -602,8 +608,9 @@ function SetupSekolah() {
             <div className="flex gap-2 pt-1">
               <button onClick={() => setShowAddModal(false)} className="flex-1 py-2.5 bg-white/5 text-slate-300 rounded-lg text-xs font-bold">Batal</button>
               <button onClick={() => {
-                if (!newStudent.name.trim()) return alert('Nama harus diisi');
+                if (!newStudent.name.trim()) return toast.error('Nama harus diisi');
                 addStudentMutate({...newStudent});
+                toast.success('Murid berhasil ditambahkan');
                 setShowAddModal(false);
                 setNewStudent({ name: '', phase: 'Fondasi', group: 'A', height: '', weight: '', gender: 'L', nisn: '', nik: '', birthPlace: '', birthDate: '' });
               }} className="flex-[2] py-2.5 bg-gradient-to-r from-secondary to-primary text-white rounded-lg text-xs font-bold active:scale-95 transition-all">

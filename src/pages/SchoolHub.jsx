@@ -7,6 +7,7 @@ import { useMySchool, useJoinSchool, useLeaveSchool, useSchoolMembers, useSchool
 import { useSession } from '../lib/authClient';
 import ChatBox from '../components/ChatBox';
 import PushNotificationToggle from '../components/PushNotificationToggle';
+import { toast } from 'sonner';
 
 function SchoolHub() {
   const { data: mySchool, isLoading } = useMySchool();
@@ -37,9 +38,9 @@ function SchoolHub() {
   const { data: teacherTpls } = useTeacherTemplates(npsn, tplTeacher);
 
   const handleJoin = () => {
-    if (!joinNpsn || joinNpsn.length < 8) return alert('NPSN harus minimal 8 digit');
+    if (!joinNpsn || joinNpsn.length < 8) return toast.error('NPSN harus minimal 8 digit');
     joinSchool({ npsn: joinNpsn, schoolName: joinName || undefined }, {
-      onSuccess: (d) => alert(d.message), onError: (e) => alert(e?.response?.data?.error || 'Gagal')
+      onSuccess: (d) => toast.success(d.message), onError: (e) => toast.error(e?.response?.data?.error || 'Gagal')
     });
   };
 
@@ -48,16 +49,16 @@ function SchoolHub() {
   const handleImport = () => {
     if (!selectedIds.length || !selectedTeacher) return;
     importStudents({ npsn, studentIds: selectedIds, fromUserId: selectedTeacher }, {
-      onSuccess: (d) => { alert(d.message); setSelectedIds([]); },
-      onError: (e) => alert(e?.response?.data?.error || 'Gagal'),
+      onSuccess: (d) => { toast.success(d.message); setSelectedIds([]); },
+      onError: (e) => toast.error(e?.response?.data?.error || 'Gagal'),
     });
   };
 
   const handleTransfer = (studentId) => {
-    if (!transferTarget) return alert('Pilih guru tujuan');
+    if (!transferTarget) return toast.error('Pilih guru tujuan');
     if (!window.confirm('Yakin transfer siswa ini?')) return;
     transferStudent({ npsn, studentId, toUserId: transferTarget }, {
-      onSuccess: (d) => alert(d.message), onError: (e) => alert(e?.response?.data?.error || 'Gagal'),
+      onSuccess: (d) => toast.success(d.message), onError: (e) => toast.error(e?.response?.data?.error || 'Gagal'),
     });
   };
 
@@ -311,7 +312,7 @@ function SchoolHub() {
                     );
                   })}
                 </div>
-                <button onClick={() => { if (!selectedTplIds.length) return; forkTemplates({ npsn, templateIds: selectedTplIds }, { onSuccess: (d) => { alert(d.message); setSelectedTplIds([]); }, onError: (e) => alert(e?.response?.data?.error || 'Gagal') }); }} disabled={isForking || !selectedTplIds.length} className="w-full py-3 bg-gradient-to-r from-secondary to-primary text-white rounded-xl text-sm font-bold disabled:opacity-50">
+                <button onClick={() => { if (!selectedTplIds.length) return; forkTemplates({ npsn, templateIds: selectedTplIds }, { onSuccess: (d) => { toast.success(d.message); setSelectedTplIds([]); }, onError: (e) => toast.error(e?.response?.data?.error || 'Gagal') }); }} disabled={isForking || !selectedTplIds.length} className="w-full py-3 bg-gradient-to-r from-secondary to-primary text-white rounded-xl text-sm font-bold disabled:opacity-50">
                   {isForking ? 'Mengimpor...' : `Import ${selectedTplIds.length} Template`}
                 </button>
               </>)}
@@ -361,7 +362,7 @@ function SchoolHub() {
 
           {/* Leave */}
           <div className="text-center pt-4">
-            <button onClick={() => { if (window.confirm('Yakin keluar?')) leaveSchool(undefined, { onSuccess: () => alert('Berhasil keluar'), onError: () => alert('Gagal') }); }} disabled={isLeaving} className="text-xs text-red-400 font-bold hover:text-red-300">{isLeaving ? 'Memproses...' : 'Keluar dari Sekolah'}</button>
+            <button onClick={() => { if (window.confirm('Yakin keluar?')) leaveSchool(undefined, { onSuccess: () => toast.success('Berhasil keluar'), onError: () => toast.error('Gagal') }); }} disabled={isLeaving} className="text-xs text-red-400 font-bold hover:text-red-300">{isLeaving ? 'Memproses...' : 'Keluar dari Sekolah'}</button>
           </div>
         </div>
       </main>
