@@ -17,6 +17,7 @@ import uploadRouter from './routes/upload';
 import schoolsRouter from './routes/schools';
 import chatRouter from './routes/chat';
 import pushRouter from './routes/push';
+import publicRaportRouter from './routes/publicRaport';
 
 // Load .env — Docker production: /app/.env.production, Dev: ../../.env
 const isProduction = process.env.NODE_ENV === 'production';
@@ -94,6 +95,9 @@ app.use('/api/', globalLimiter);
 app.use(express.json({ limit: '2mb' }));
 
 // ─── Routes ──────────────────────────────────────────────
+// Public routes (no auth required)
+app.use('/api/public', publicRaportRouter);
+
 // Auth (with stricter rate limit)
 app.use("/api/auth", authLimiter, toNodeHandler(auth));
 

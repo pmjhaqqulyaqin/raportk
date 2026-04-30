@@ -128,6 +128,10 @@ else
             auth TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT NOW() NOT NULL
         );
+
+        -- v1.5: Parent Portal share token
+        ALTER TABLE reports ADD COLUMN IF NOT EXISTS share_token TEXT UNIQUE;
+        CREATE INDEX IF NOT EXISTS reports_share_token_idx ON reports(share_token);
     " 2>&1 && echo "    ✓ Schema SQL applied" || echo "    ⚠ Schema SQL warning"
 fi
 

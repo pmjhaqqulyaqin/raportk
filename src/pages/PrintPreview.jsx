@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useStudents, useSchoolInfo, useReport, useAllReports } from '../hooks/queries';
+import { useStudents, useSchoolInfo, useReport, useAllReports, useShareReport, useRevokeShare } from '../hooks/queries';
 import { replacePlaceholders } from '../lib/templateEngine';
 import { toast } from 'sonner';
+import { QRCodeSVG } from 'qrcode.react';
 import * as XLSX from 'xlsx';
 
 function PrintPreview() {
@@ -34,6 +35,40 @@ function PrintPreview() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const { mutate: shareReport, isPending: isSharing } = useShareReport();
+  const { mutate: revokeShare, isPending: isRevoking } = useRevokeShare();
+  const [showSharePanel, setShowSharePanel] = useState(false);
+
+  const getShareUrl = (token) => {
+    const base = window.location.origin;
+    return `${base}/raport/${token}`;
+  };
+
+  const handleShare = () => {
+    shareReport(id, {
+      onSuccess: (data) => {
+        toast.success('Link raport berhasil dibuat!');
+        setShowSharePanel(true);
+      },
+      onError: () => toast.error('Gagal membuat link berbagi'),
+    });
+  };
+
+  const handleRevoke = () => {
+    revokeShare(id, {
+      onSuccess: () => {
+        toast.success('Link berbagi telah dicabut');
+        setShowSharePanel(false);
+      },
+      onError: () => toast.error('Gagal mencabut link'),
+    });
+  };
+
+  const handleCopyLink = (token) => {
+    navigator.clipboard.writeText(getShareUrl(token));
+    toast.success('Link disalin ke clipboard!');
   };
 
   const handleExportLeger = () => {
@@ -285,12 +320,46 @@ function PrintPreview() {
                     Edit Kembali
                   </Link>
                 )}
+                {!isBatch && (
+                  <button onClick={singleReport?.shareToken ? () => setShowSharePanel(!showSharePanel) : handleShare} disabled={isSharing}
+                    className="flex items-center gap-1.5 px-3 lg:px-5 py-2 lg:py-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-xl text-xs lg:text-base font-bold transition-all border border-emerald-500/30 disabled:opacity-50">
+                    <span className="material-symbols-outlined text-lg">qr_code_2</span>
+                    {isSharing ? 'Membuat...' : singleReport?.shareToken ? 'Lihat QR' : 'Bagikan ke Ortu'}
+                  </button>
+                )}
                 <button onClick={handlePrint} className="flex items-center gap-1.5 px-4 lg:px-6 py-2 lg:py-3 text-white bg-gradient-to-r from-secondary to-primary hover:from-primary hover:to-secondary rounded-xl text-xs lg:text-base font-bold shadow-lg shadow-primary/30 transition-all active:scale-95">
                   <span className="material-symbols-outlined text-lg" data-icon="print">print</span>
                   Cetak / Save PDF
                 </button>
               </div>
             </div>
+
+            {/* Share Panel (QR Code + Link) */}
+            {showSharePanel && singleReport?.shareToken && (
+              <div className="glass-card rounded-2xl p-5 lg:p-6 border-emerald-500/20 flex flex-col sm:flex-row items-center gap-5">
+                <div className="bg-white p-3 rounded-2xl shadow-lg">
+                  <QRCodeSVG value={getShareUrl(singleReport.shareToken)} size={140} />
+                </div>
+                <div className="flex-1 text-center sm:text-left">
+                  <h4 className="text-sm font-black text-white mb-1 flex items-center gap-2 justify-center sm:justify-start">
+                    <span className="material-symbols-outlined text-emerald-400 text-[18px]">link</span>
+                    Link Raport untuk Orang Tua
+                  </h4>
+                  <p className="text-[11px] text-slate-400 mb-3">Scan QR Code atau salin link di bawah untuk dikirim ke orang tua/wali.</p>
+                  <div className="flex items-center gap-2 bg-black/30 rounded-xl p-2 border border-white/10">
+                    <input readOnly value={getShareUrl(singleReport.shareToken)} className="flex-1 bg-transparent text-[11px] text-emerald-300 font-mono px-2 focus:outline-none truncate" />
+                    <button onClick={() => handleCopyLink(singleReport.shareToken)} className="px-3 py-1.5 bg-emerald-500/20 text-emerald-300 rounded-lg text-[11px] font-bold hover:bg-emerald-500/30 active:scale-95 transition-all">
+                      Salin
+                    </button>
+                  </div>
+                  <button onClick={handleRevoke} disabled={isRevoking}
+                    className="mt-3 flex items-center gap-1 text-[10px] text-red-400 hover:text-red-300 transition-colors font-bold disabled:opacity-50">
+                    <span className="material-symbols-outlined text-[14px]">link_off</span>
+                    {isRevoking ? 'Mencabut...' : 'Cabut Link Berbagi'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* A4 Mockup Container */}
             <div className="flex flex-col xl:flex-row gap-10 justify-center items-start overflow-x-auto pb-12 w-full custom-scrollbar">
@@ -464,8 +533,20 @@ function PrintPreview() {
                   </div>
                 </div>
 
-                <div className="mt-8 text-center text-[10pt] text-gray-500 italic border-t border-gray-300 pt-2">
-                  Halaman 2
+                <div className="mt-8 text-center text-[10pt] text-gray-500 italic border-t border-gray-300 pt-2 flex items-center justify-between">
+                  <span>Halaman 2</span>
+                  {(() => {
+                    const token = isBatch
+                      ? (allReports.find(r => r.studentId === currentStudent.id) || {}).shareToken
+                      : singleReport?.shareToken;
+                    if (!token) return null;
+                    return (
+                      <div className="flex items-center gap-2 not-italic text-[8pt]">
+                        <QRCodeSVG value={getShareUrl(token)} size={48} />
+                        <span className="text-gray-500">Scan untuk<br/>lihat online</span>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
                   </React.Fragment>

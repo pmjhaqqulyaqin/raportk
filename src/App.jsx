@@ -16,6 +16,7 @@ const TemplateManager = lazy(() => import('./pages/TemplateManager'));
 const SchoolHub = lazy(() => import('./pages/SchoolHub'));
 const PrintPreview = lazy(() => import('./pages/PrintPreview'));
 const Legal = lazy(() => import('./pages/Legal'));
+const PublicRaport = lazy(() => import('./pages/PublicRaport'));
 
 const queryClient = new QueryClient();
 
@@ -100,6 +101,7 @@ function App() {
             <Route path="/print" element={<ProtectedRoute><PrintPreview /></ProtectedRoute>} />
             <Route path="/print/:id" element={<ProtectedRoute><PrintPreview /></ProtectedRoute>} />
             <Route path="/legal" element={<Legal />} />
+            <Route path="/raport/:token" element={<PublicRaport />} />
           </Routes>
         </Suspense>
         <AuthBottomNav />

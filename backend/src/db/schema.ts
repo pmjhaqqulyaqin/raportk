@@ -108,10 +108,12 @@ export const reports = pgTable("reports", {
     attendancePermission: integer("attendance_permission").default(0),
     attendanceUnexcused: integer("attendance_unexcused").default(0),
     parentReflection: text("parent_reflection"),
+    shareToken: text("share_token").unique(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (t) => ({
     studentIdIdx: index("reports_student_id_idx").on(t.studentId),
+    shareTokenIdx: index("reports_share_token_idx").on(t.shareToken),
 }));
 
 export const templates = pgTable("templates", {

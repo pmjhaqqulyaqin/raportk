@@ -447,3 +447,42 @@ export const useEditChat = () => {
     },
   });
 };
+
+// --- PARENT PORTAL ---
+export const useShareReport = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (studentId) => {
+      const { data } = await apiClient.post(`/reports/${studentId}/share`);
+      return data;
+    },
+    onSuccess: (_, studentId) => {
+      queryClient.invalidateQueries({ queryKey: ['report', studentId] });
+    },
+  });
+};
+
+export const useRevokeShare = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (studentId) => {
+      const { data } = await apiClient.delete(`/reports/${studentId}/share`);
+      return data;
+    },
+    onSuccess: (_, studentId) => {
+      queryClient.invalidateQueries({ queryKey: ['report', studentId] });
+    },
+  });
+};
+
+export const usePublicRaport = (token) => {
+  return useQuery({
+    queryKey: ['publicRaport', token],
+    queryFn: async () => {
+      const { data } = await apiClient.get(`/public/raport/${token}`);
+      return data;
+    },
+    enabled: !!token,
+    retry: false,
+  });
+};

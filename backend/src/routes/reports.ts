@@ -3,6 +3,7 @@ import { db } from '../db';
 import { reports } from '../db/schema';
 import { eq, and } from 'drizzle-orm';
 import { requireAuth } from '../middleware/authMiddleware';
+import crypto from 'crypto';
 
 const router = Router();
 router.use(requireAuth);
@@ -64,4 +65,52 @@ router.put('/:studentId', async (req, res) => {
     }
 });
 
+// ─── Parent Portal: Generate Share Token ─────────────────
+router.post('/:studentId/share', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { studentId } = req.params;
+
+    try {
+        const existing = await db.select().from(reports)
+            .where(and(eq(reports.studentId, studentId), eq(reports.userId, userId)));
+
+        if (!existing.length) {
+            return res.status(404).json({ error: 'Raport belum dibuat untuk siswa ini' });
+        }
+
+        // If already has token, return it
+        if (existing[0].shareToken) {
+            return res.json({ shareToken: existing[0].shareToken });
+        }
+
+        // Generate unique token (URL-safe, 16 bytes = 22 chars base64url)
+        const token = crypto.randomBytes(16).toString('base64url');
+        
+        await db.update(reports)
+            .set({ shareToken: token, updatedAt: new Date() })
+            .where(and(eq(reports.studentId, studentId), eq(reports.userId, userId)));
+
+        res.json({ shareToken: token });
+    } catch (error) {
+        res.status(500).json({ error: 'Gagal membuat link berbagi' });
+    }
+});
+
+// ─── Parent Portal: Revoke Share Token ───────────────────
+router.delete('/:studentId/share', async (req, res) => {
+    const userId = (req as any).user.id;
+    const { studentId } = req.params;
+
+    try {
+        await db.update(reports)
+            .set({ shareToken: null, updatedAt: new Date() })
+            .where(and(eq(reports.studentId, studentId), eq(reports.userId, userId)));
+
+        res.json({ message: 'Link berbagi telah dicabut' });
+    } catch (error) {
+        res.status(500).json({ error: 'Gagal mencabut link berbagi' });
+    }
+});
+
 export default router;
+
